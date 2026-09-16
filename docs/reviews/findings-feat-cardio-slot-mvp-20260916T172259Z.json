@@ -1,0 +1,90 @@
+{
+  "findings": [
+    {
+      "severity": "Important",
+      "file": "src/platform/wakeLock.ts",
+      "line": "28",
+      "description": "Released screen wake locks are never cleared, so the visibility handler cannot reacquire them.",
+      "failure_scenario": "A phone backgrounds an active workout and the browser releases its wake lock; returning visible leaves a non-null released sentinel, so the screen may sleep during the run.",
+      "flagged_by": "Angle A",
+      "status": "valid"
+    },
+    {
+      "severity": "Important",
+      "file": "src/App.tsx",
+      "line": "116",
+      "description": "The wordmark clears an active run without the required confirmation.",
+      "failure_scenario": "A runner taps the header by accident while running; new-workout discards the active run and result instead of using the confirmed End flow.",
+      "flagged_by": "Cross-file tracer",
+      "status": "valid"
+    },
+    {
+      "severity": "Important",
+      "file": "src/styles.css",
+      "line": "191",
+      "description": "The final-five-second transition mixes toward the current intensity rather than the next intensity.",
+      "failure_scenario": "When an Easy interval is about to become MAX, the background continues to cue Easy, so the promised anticipatory visual signal is absent.",
+      "flagged_by": "Plan Alignment",
+      "status": "valid"
+    },
+    {
+      "severity": "Important",
+      "file": "src/components/ReelMachine.tsx",
+      "line": "19",
+      "description": "All three reels spin and stop together instead of stopping sequentially on their generated values.",
+      "failure_scenario": "After Pull, every reel is replaced at the same reveal instant; the approved sequential Focus, Pattern, Finish stop sequence never occurs.",
+      "flagged_by": "Plan Alignment",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "src/styles.css",
+      "line": "17",
+      "description": "Track primary controls use white text on signal red below the 4.5:1 body-text contrast requirement.",
+      "failure_scenario": "Small button labels render at roughly 4.1:1, making the primary Pull and Start controls harder to read and violating the project contrast rule.",
+      "flagged_by": "Design Quality",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "src/platform/install.ts",
+      "line": "8",
+      "description": "iPadOS devices using the desktop-class user agent do not receive Add to Home Screen guidance.",
+      "failure_scenario": "An iPad reports Macintosh/MacIntel with touch points, so isIosDevice returns false and hides the only available install guidance.",
+      "flagged_by": "Language-pitfall scan",
+      "status": "valid"
+    },
+    {
+      "severity": "Important",
+      "file": "src/domain/workout.ts",
+      "line": "137",
+      "description": "The generator and validator omit the approved typed configuration and safety-rule parameters.",
+      "failure_scenario": "A registered recipe or safety configuration cannot be supplied through the documented internal interfaces, so extension requires editing generator internals and can silently diverge from validation.",
+      "flagged_by": "Plan Alignment",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "src/App.tsx",
+      "line": "121",
+      "description": "The header claims offline readiness before the service worker finishes caching the app shell.",
+      "failure_scenario": "On a first visit with a slow connection, the runner sees READY OFFLINE and closes the page before caching completes; the next offline launch fails despite the status claim.",
+      "flagged_by": "Gap sweep",
+      "status": "valid"
+    }
+  ],
+  "active_lenses": [
+    "Angle A",
+    "Angle B",
+    "Angle C",
+    "Angle D",
+    "Angle E",
+    "Cleanup",
+    "Altitude",
+    "Conventions",
+    "Plan Alignment",
+    "Test Quality",
+    "Design Quality",
+    "Dead Code"
+  ]
+}

@@ -1,6 +1,6 @@
-import { COMPATIBILITY, DURATION_DEFINITIONS } from './config'
+import { COMPATIBILITY, DURATION_DEFINITIONS, SAFETY_RULES } from './config'
 import { RECIPE_BUILDERS } from './recipes'
-import { generateWorkout, getEffectiveIntervals, withBookendPreference } from './workout'
+import { generateWorkout, getEffectiveIntervals, withBookendPreference, WORKOUT_CONFIG } from './workout'
 import { validateWorkout } from './validate'
 import type { DurationMinutes, PatternId } from './types'
 
@@ -40,5 +40,17 @@ describe('Given a runner pulls a workout ticket', () => {
     expect(withoutWarmup.effectiveDurationSeconds).toBe(plan.effectiveDurationSeconds - 180)
     expect(withoutCooldown.effectiveDurationSeconds).toBe(plan.effectiveDurationSeconds - 180)
   })
-})
 
+  it('uses the supplied typed reel and recipe configuration', () => {
+    const compatibility: typeof COMPATIBILITY = {
+      endurance: { patterns: ['long'], finishes: ['steady'] },
+      hills: { patterns: ['long'], finishes: ['steady'] },
+      speed: { patterns: ['long'], finishes: ['steady'] },
+      mixed: { patterns: ['long'], finishes: ['steady'] },
+    }
+    const plan = generateWorkout(15, 47, { ...WORKOUT_CONFIG, compatibility })
+    expect(plan.pattern).toBe('long')
+    expect(plan.finish).toBe('steady')
+    expect(validateWorkout(plan, SAFETY_RULES, { durations: WORKOUT_CONFIG.durations, compatibility })).toEqual([])
+  })
+})

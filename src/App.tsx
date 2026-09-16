@@ -25,11 +25,13 @@ export default function App() {
   const [resultFile, setResultFile] = useState<File | null>(null)
   const [shareMessage, setShareMessage] = useState('')
   const [updateReady, setUpdateReady] = useState(false)
+  const [offlineReady, setOfflineReady] = useState(false)
   const lastTransitionId = useRef<string | null>(null)
   const installPrompt = useInstallPrompt()
   const wakeLockStatus = useWakeLock(state.flow === 'running')
   const { updateServiceWorker } = useRegisterSW({
     onNeedRefresh: () => setUpdateReady(true),
+    onOfflineReady: () => setOfflineReady(true),
   })
 
   const runSnapshot = useMemo(() => state.activeRun
@@ -42,12 +44,12 @@ export default function App() {
   }, [state])
 
   useEffect(() => {
-    if (state.flow !== 'spinning' || state.pendingSeed === null) return
+    if (state.flow !== 'spinning' || !state.currentTicket) return
     const timer = window.setTimeout(() => {
-      dispatch({ type: 'reveal', plan: generateWorkout(state.duration, state.pendingSeed ?? 0) })
+      dispatch({ type: 'reveal' })
     }, 2_150)
     return () => window.clearTimeout(timer)
-  }, [state.duration, state.flow, state.pendingSeed])
+  }, [state.currentTicket, state.flow])
 
   useEffect(() => {
     if (state.flow !== 'countdown' && state.flow !== 'running') return
@@ -94,7 +96,11 @@ export default function App() {
     void updateServiceWorker(true)
   }, [state.flow, updateReady, updateServiceWorker])
 
-  const pull = () => dispatch({ type: 'pull', seed: createWorkoutSeed() })
+  const pull = () => {
+    const seed = createWorkoutSeed()
+    dispatch({ type: 'pull', plan: generateWorkout(state.duration, seed) })
+  }
+  const sessionActive = state.flow === 'countdown' || state.flow === 'running'
   const countdownNumber = state.countdownStartedAt === null
     ? COUNTDOWN_SECONDS
     : Math.max(1, Math.ceil(COUNTDOWN_SECONDS - (state.now - state.countdownStartedAt) / 1000))
@@ -113,12 +119,12 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button className="wordmark" onClick={() => dispatch({ type: 'new-workout' })} aria-label="Cardio Slot home">
+        <button className="wordmark" disabled={sessionActive} onClick={() => dispatch({ type: 'new-workout' })} aria-label="Cardio Slot home">
           <span className="wordmark-mark" aria-hidden="true">CS</span>
           <span>CARDIO SLOT</span>
         </button>
         <div className="topbar-actions">
-          <span className="offline-badge"><i /> READY OFFLINE</span>
+          <span className="offline-badge"><i /> {offlineReady ? 'READY OFFLINE' : 'SAVING OFFLINE'}</span>
           {installPrompt.canInstall && <button className="text-button" onClick={() => void installPrompt.install()}>Install app</button>}
         </div>
       </header>
@@ -204,7 +210,7 @@ export default function App() {
       )}
 
       {state.flow === 'running' && state.currentTicket && runSnapshot?.currentInterval && (
-        <main className={`run-screen intensity-${runSnapshot.currentInterval.intensity} ${runSnapshot.intervalRemainingSeconds <= 5 && runSnapshot.nextInterval ? 'is-transitioning' : ''}`}>
+        <main className={`run-screen intensity-${runSnapshot.currentInterval.intensity} next-intensity-${runSnapshot.nextInterval?.intensity ?? runSnapshot.currentInterval.intensity} ${runSnapshot.intervalRemainingSeconds <= 5 && runSnapshot.nextInterval ? 'is-transitioning' : ''}`}>
           <header className="run-header">
             <span>BLOCK {runSnapshot.blockIndex + 1} / {runSnapshot.blockCount}</span>
             <span className={`wake-status wake-${wakeLockStatus}`}><i /> {wakeLockStatus === 'active' ? 'SCREEN AWAKE' : wakeLockStatus === 'unsupported' ? 'KEEP SCREEN ON' : wakeLockStatus === 'denied' ? 'WAKE LOCK DENIED' : 'REQUESTING WAKE LOCK'}</span>
@@ -257,4 +263,3 @@ export default function App() {
     </div>
   )
 }
-

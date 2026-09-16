@@ -60,6 +60,7 @@ test('Given a runner completes the ticket, the result celebrates the full workou
 test('Given the app loaded once, its shell launches while offline', async ({ page, context, browserName }) => {
   test.skip(browserName === 'webkit', 'Playwright WebKit cannot navigate while its context is forced offline')
   await page.evaluate(async () => { await navigator.serviceWorker.ready })
+  await expect(page.locator('.offline-badge')).toHaveText(/READY OFFLINE/)
   await context.setOffline(true)
   await page.close()
   const offlinePage = await context.newPage()

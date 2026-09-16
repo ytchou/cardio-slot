@@ -5,8 +5,15 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-export function isIosDevice() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+interface DeviceIdentity {
+  userAgent: string
+  platform: string
+  maxTouchPoints: number
+}
+
+export function isIosDevice(identity: DeviceIdentity = navigator) {
+  return /iphone|ipad|ipod/i.test(identity.userAgent)
+    || (identity.platform === 'MacIntel' && identity.maxTouchPoints > 1)
 }
 
 export function isStandalone() {
@@ -49,4 +56,3 @@ declare global {
     standalone?: boolean
   }
 }
-

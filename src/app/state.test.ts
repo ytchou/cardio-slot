@@ -17,7 +17,8 @@ describe('Given the workout app is resumed or advanced', () => {
 
   it('persists only the versioned durable state', () => {
     const state = createInitialState(null, start)
-    const running = appReducer(appReducer(state, { type: 'reveal', plan }), { type: 'start-run', timestamp: start })
+    const ticket = appReducer(appReducer(state, { type: 'pull', plan }), { type: 'reveal' })
+    const running = appReducer(ticket, { type: 'start-run', timestamp: start })
     expect(toPersistedState(running)).toEqual({
       version: 1,
       theme: 'track',
@@ -26,5 +27,11 @@ describe('Given the workout app is resumed or advanced', () => {
       latestResult: null,
     })
   })
-})
 
+  it('keeps an active workout when the home action is triggered accidentally', () => {
+    const state = createInitialState(null, start)
+    const ticket = appReducer(appReducer(state, { type: 'pull', plan }), { type: 'reveal' })
+    const running = appReducer(ticket, { type: 'start-run', timestamp: start })
+    expect(appReducer(running, { type: 'new-workout' })).toBe(running)
+  })
+})

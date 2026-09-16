@@ -1,12 +1,32 @@
-import { COMPATIBILITY, DURATION_DEFINITIONS, SAFETY_RULES } from './config'
+import {
+  COMPATIBILITY,
+  DURATION_DEFINITIONS,
+  SAFETY_RULES,
+  type DurationDefinition,
+  type SafetyRules,
+} from './config'
 import { getEffectiveIntervals } from './workout'
-import type { ValidationIssue, WorkoutPlan } from './types'
+import type { DurationMinutes, ValidationIssue, WorkoutPlan } from './types'
 
-export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
+interface WorkoutValidationConfig {
+  durations: Record<DurationMinutes, DurationDefinition>
+  compatibility: typeof COMPATIBILITY
+}
+
+const DEFAULT_VALIDATION_CONFIG: WorkoutValidationConfig = {
+  durations: DURATION_DEFINITIONS,
+  compatibility: COMPATIBILITY,
+}
+
+export function validateWorkout(
+  plan: WorkoutPlan,
+  safetyRules: SafetyRules = SAFETY_RULES,
+  config: WorkoutValidationConfig = DEFAULT_VALIDATION_CONFIG,
+): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   const allIntervals = plan.blocks.flatMap((block) => block.intervals)
   const totalSeconds = allIntervals.reduce((total, interval) => total + interval.durationSeconds, 0)
-  const definition = DURATION_DEFINITIONS[plan.durationMinutes]
+  const definition = config.durations[plan.durationMinutes]
   const mainBlocks = plan.blocks.filter((block) => block.kind === 'main')
 
   if (totalSeconds !== plan.durationMinutes * 60) {
@@ -15,7 +35,8 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
   if (mainBlocks.length < definition.blockRange[0] || mainBlocks.length > definition.blockRange[1]) {
     issues.push({ code: 'block-count', message: 'The main block count is outside its duration range.' })
   }
-  if (!COMPATIBILITY[plan.focus].patterns.includes(plan.pattern) || !COMPATIBILITY[plan.focus].finishes.includes(plan.finish)) {
+  const compatibility = config.compatibility[plan.focus]
+  if (!compatibility.patterns.includes(plan.pattern) || !compatibility.finishes.includes(plan.finish)) {
     issues.push({ code: 'compatibility', message: 'The selected reels are not compatible.' })
   }
 
@@ -25,10 +46,10 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
       issues.push({ code: 'ordering', message: `Interval ${interval.id} does not follow the preceding interval.` })
     }
     expectedStart += interval.durationSeconds
-    if (interval.durationSeconds % SAFETY_RULES.unitSeconds !== 0) {
+    if (interval.durationSeconds % safetyRules.unitSeconds !== 0) {
       issues.push({ code: 'unit', message: `Interval ${interval.id} is not aligned to 30 seconds.` })
     }
-    if (interval.incline < SAFETY_RULES.inclineMin || interval.incline > SAFETY_RULES.inclineMax) {
+    if (interval.incline < safetyRules.inclineMin || interval.incline > safetyRules.inclineMax) {
       issues.push({ code: 'incline', message: `Interval ${interval.id} has an unsafe incline.` })
     }
     if (interval.bookend && (interval.intensity !== 'easy' || interval.incline !== 1)) {
@@ -38,14 +59,14 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
 
   const maxIntervals = allIntervals.filter((interval) => interval.intensity === 'max')
   const maxSeconds = maxIntervals.reduce((total, interval) => total + interval.durationSeconds, 0)
-  if (maxSeconds > plan.plannedDurationSeconds * SAFETY_RULES.maxEffortRatio) {
+  if (maxSeconds > plan.plannedDurationSeconds * safetyRules.maxEffortRatio) {
     issues.push({ code: 'max-total', message: 'MAX effort exceeds 10% of planned time.' })
   }
   for (const interval of maxIntervals) {
-    if (interval.durationSeconds < SAFETY_RULES.maxIntervalMinSeconds || interval.durationSeconds > SAFETY_RULES.maxIntervalMaxSeconds) {
+    if (interval.durationSeconds < safetyRules.maxIntervalMinSeconds || interval.durationSeconds > safetyRules.maxIntervalMaxSeconds) {
       issues.push({ code: 'max-duration', message: `MAX interval ${interval.id} must last 30–60 seconds.` })
     }
-    if (interval.incline < SAFETY_RULES.maxInclineMin || interval.incline > SAFETY_RULES.maxInclineMax) {
+    if (interval.incline < safetyRules.maxInclineMin || interval.incline > safetyRules.maxInclineMax) {
       issues.push({ code: 'max-incline', message: `MAX interval ${interval.id} must stay at 1–2%.` })
     }
     const index = allIntervals.indexOf(interval)
@@ -65,4 +86,3 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
   }
   return issues
 }
-

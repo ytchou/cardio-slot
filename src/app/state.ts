@@ -12,7 +12,6 @@ export interface AppState {
   currentTicket: WorkoutPlan | null
   activeRun: RunRecord | null
   latestResult: ResultSummary | null
-  pendingSeed: number | null
   countdownStartedAt: number | null
   now: number
   confirmEnd: boolean
@@ -21,8 +20,8 @@ export interface AppState {
 export type AppAction =
   | { type: 'set-duration'; duration: DurationMinutes }
   | { type: 'set-theme'; theme: ThemeId }
-  | { type: 'pull'; seed: number }
-  | { type: 'reveal'; plan: WorkoutPlan }
+  | { type: 'pull'; plan: WorkoutPlan }
+  | { type: 'reveal' }
   | { type: 'toggle-bookend'; kind: 'warmup' | 'cooldown'; included: boolean }
   | { type: 'start-countdown'; timestamp: number }
   | { type: 'start-run'; timestamp: number }
@@ -42,7 +41,6 @@ export function createInitialState(saved: PersistedStateV1 | null, now = Date.no
     currentTicket,
     activeRun,
     latestResult: saved?.latestResult ?? null,
-    pendingSeed: null,
     countdownStartedAt: null,
     now,
     confirmEnd: false,
@@ -53,8 +51,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'set-duration': return { ...state, duration: action.duration }
     case 'set-theme': return { ...state, theme: action.theme }
-    case 'pull': return { ...state, flow: 'spinning', pendingSeed: action.seed, latestResult: null, confirmEnd: false }
-    case 'reveal': return { ...state, flow: 'ticket', currentTicket: action.plan, pendingSeed: null }
+    case 'pull': return { ...state, flow: 'spinning', currentTicket: action.plan, latestResult: null, confirmEnd: false }
+    case 'reveal': return { ...state, flow: 'ticket' }
     case 'toggle-bookend': return state.currentTicket ? {
       ...state,
       currentTicket: withBookendPreference(state.currentTicket, action.kind, action.included),
@@ -96,13 +94,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         confirmEnd: false,
       }
     }
-    case 'new-workout': return {
+    case 'new-workout': return state.flow === 'running' || state.flow === 'countdown' ? state : {
       ...state,
       flow: 'configure',
       currentTicket: null,
       activeRun: null,
       latestResult: null,
-      pendingSeed: null,
       countdownStartedAt: null,
       confirmEnd: false,
     }
@@ -118,4 +115,3 @@ export function toPersistedState(state: AppState): PersistedStateV1 {
     latestResult: state.latestResult,
   }
 }
-

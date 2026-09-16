@@ -6,6 +6,18 @@ export interface DurationDefinition {
   blockRange: readonly [number, number]
 }
 
+export interface SafetyRules {
+  unitSeconds: number
+  inclineMin: number
+  inclineMax: number
+  maxIntervalMinSeconds: number
+  maxIntervalMaxSeconds: number
+  maxInclineMin: number
+  maxInclineMax: number
+  maxEffortRatio: number
+  generationAttempts: number
+}
+
 export const DURATION_DEFINITIONS: Record<DurationMinutes, DurationDefinition> = {
   15: { minutes: 15, bookendMinutes: 2, blockRange: [2, 3] },
   30: { minutes: 30, bookendMinutes: 3, blockRange: [3, 5] },
@@ -48,7 +60,7 @@ export const COMPATIBILITY: Record<FocusId, { patterns: readonly PatternId[]; fi
   mixed: { patterns: ['long', 'waves', 'ladder', 'repeats', 'progressive'], finishes: ['steady', 'fast-close', 'sprint', 'climb'] },
 }
 
-export const SAFETY_RULES = {
+export const SAFETY_RULES: SafetyRules = {
   unitSeconds: 30,
   inclineMin: 1,
   inclineMax: 8,
@@ -58,4 +70,4 @@ export const SAFETY_RULES = {
   maxInclineMax: 2,
   maxEffortRatio: 0.1,
   generationAttempts: 12,
-} as const
+}

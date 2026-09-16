@@ -26,7 +26,8 @@ export function useWakeLock(enabled: boolean) {
         }
         setStatus('active')
         sentinel.addEventListener('release', () => {
-          if (!disposed && document.visibilityState === 'visible') setStatus('inactive')
+          sentinel = null
+          if (!disposed) setStatus('inactive')
         })
       } catch {
         if (!disposed) setStatus('denied')
@@ -47,4 +48,3 @@ export function useWakeLock(enabled: boolean) {
 
   return status
 }
-

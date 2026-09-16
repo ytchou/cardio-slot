@@ -1,6 +1,6 @@
-import { COMPATIBILITY, DURATION_DEFINITIONS, SAFETY_RULES } from './config'
+import { COMPATIBILITY, DURATION_DEFINITIONS, SAFETY_RULES, type DurationDefinition, type SafetyRules } from './config'
 import { createRandom, pick, randomInteger } from './random'
-import { RECIPE_BUILDERS, type RecipeFrame } from './recipes'
+import { RECIPE_BUILDERS, type RecipeBuilder, type RecipeFrame } from './recipes'
 import type { DurationMinutes, FinishId, FocusId, PatternId, WorkoutBlock, WorkoutInterval, WorkoutPlan } from './types'
 import { validateWorkout } from './validate'
 
@@ -10,12 +10,24 @@ function distributeUnits(total: number, count: number) {
   return Array.from({ length: count }, (_, index) => minimum + (index < remainder ? 1 : 0))
 }
 
-function framesToIntervals(frames: RecipeFrame[], blockId: string, startSeconds: number, idPrefix: string): WorkoutInterval[] {
+export interface WorkoutGenerationConfig {
+  durations: Record<DurationMinutes, DurationDefinition>
+  compatibility: typeof COMPATIBILITY
+  recipeBuilders: Record<PatternId, RecipeBuilder>
+}
+
+export const WORKOUT_CONFIG: WorkoutGenerationConfig = {
+  durations: DURATION_DEFINITIONS,
+  compatibility: COMPATIBILITY,
+  recipeBuilders: RECIPE_BUILDERS,
+}
+
+function framesToIntervals(frames: RecipeFrame[], blockId: string, startSeconds: number, idPrefix: string, unitSeconds: number): WorkoutInterval[] {
   const intervals: WorkoutInterval[] = []
   for (const frame of frames) {
     const previous = intervals.at(-1)
     if (previous && previous.intensity === frame.intensity && previous.incline === frame.incline) {
-      previous.durationSeconds += SAFETY_RULES.unitSeconds
+      previous.durationSeconds += unitSeconds
       continue
     }
     const offset = intervals.reduce((total, interval) => total + interval.durationSeconds, 0)
@@ -25,7 +37,7 @@ function framesToIntervals(frames: RecipeFrame[], blockId: string, startSeconds:
       intensity: frame.intensity,
       incline: frame.incline,
       startSeconds: startSeconds + offset,
-      durationSeconds: SAFETY_RULES.unitSeconds,
+      durationSeconds: unitSeconds,
       cue: frame.intensity === 'easy' ? 'Settle and recover' : frame.intensity === 'strong' ? 'Build a controlled effort' : 'Quick, powerful effort',
     })
   }
@@ -47,9 +59,9 @@ function applyFinish(frames: RecipeFrame[], finish: FinishId) {
   }
 }
 
-function injectMax(frames: RecipeFrame[], duration: DurationMinutes, finish: FinishId, focus: FocusId, random: () => number) {
+function injectMax(frames: RecipeFrame[], duration: DurationMinutes, finish: FinishId, focus: FocusId, random: () => number, safetyRules: SafetyRules) {
   if (focus !== 'speed' && focus !== 'mixed' && finish !== 'sprint') return
-  const maxBudget = Math.floor((duration * 60 * SAFETY_RULES.maxEffortRatio) / SAFETY_RULES.unitSeconds)
+  const maxBudget = Math.floor((duration * 60 * safetyRules.maxEffortRatio) / safetyRules.unitSeconds)
   const desiredBursts = duration >= 45 ? 2 : 1
   let remaining = maxBudget
   for (let burst = 0; burst < desiredBursts && remaining > 0; burst += 1) {
@@ -71,17 +83,17 @@ function injectMax(frames: RecipeFrame[], duration: DurationMinutes, finish: Fin
   }
 }
 
-function createPlan(duration: DurationMinutes, seed: number, focus: FocusId, pattern: PatternId, finish: FinishId): WorkoutPlan {
+function createPlan(duration: DurationMinutes, seed: number, focus: FocusId, pattern: PatternId, finish: FinishId, config: WorkoutGenerationConfig): WorkoutPlan {
   const random = createRandom(seed)
-  const definition = DURATION_DEFINITIONS[duration]
+  const definition = config.durations[duration]
   const blockCount = randomInteger(definition.blockRange[0], definition.blockRange[1], random)
   const bookendUnits = definition.bookendMinutes * 2
   const mainUnits = duration * 2 - bookendUnits * 2
   const blockUnits = distributeUnits(mainUnits, blockCount)
-  const mainFrames = blockUnits.flatMap((units, blockIndex) => RECIPE_BUILDERS[pattern]({ units, focus, blockIndex, blockCount }))
+  const mainFrames = blockUnits.flatMap((units, blockIndex) => config.recipeBuilders[pattern]({ units, focus, blockIndex, blockCount }))
 
   applyFinish(mainFrames, finish)
-  injectMax(mainFrames, duration, finish, focus, random)
+  injectMax(mainFrames, duration, finish, focus, random, SAFETY_RULES)
 
   const warmupSeconds = definition.bookendMinutes * 60
   const warmup: WorkoutBlock = {
@@ -99,7 +111,7 @@ function createPlan(duration: DurationMinutes, seed: number, focus: FocusId, pat
   const mainBlocks = blockUnits.map((units, blockIndex) => {
     const blockId = `block-${blockIndex + 1}`
     const frames = mainFrames.slice(frameOffset, frameOffset + units)
-    const intervals = framesToIntervals(frames, blockId, timeOffset, blockId)
+    const intervals = framesToIntervals(frames, blockId, timeOffset, blockId, SAFETY_RULES.unitSeconds)
     frameOffset += units
     timeOffset += units * SAFETY_RULES.unitSeconds
     return { id: blockId, label: `Block ${blockIndex + 1}`, kind: 'main' as const, intervals }
@@ -130,22 +142,22 @@ function createPlan(duration: DurationMinutes, seed: number, focus: FocusId, pat
   }
 }
 
-function createSafeFallback(duration: DurationMinutes, seed: number) {
-  return createPlan(duration, seed, 'endurance', 'long', 'steady')
+function createSafeFallback(duration: DurationMinutes, seed: number, config: WorkoutGenerationConfig) {
+  return createPlan(duration, seed, 'endurance', 'long', 'steady', config)
 }
 
-export function generateWorkout(duration: DurationMinutes, seed: number): WorkoutPlan {
+export function generateWorkout(duration: DurationMinutes, seed: number, config: WorkoutGenerationConfig = WORKOUT_CONFIG): WorkoutPlan {
   for (let attempt = 0; attempt < SAFETY_RULES.generationAttempts; attempt += 1) {
     const attemptSeed = (seed + Math.imul(attempt, 0x9e3779b1)) >>> 0
     const random = createRandom(attemptSeed)
-    const focus = pick(Object.keys(COMPATIBILITY) as FocusId[], random)
-    const pattern = pick(COMPATIBILITY[focus].patterns, random)
-    const finish = pick(COMPATIBILITY[focus].finishes, random)
-    const plan = createPlan(duration, seed >>> 0, focus, pattern, finish)
-    if (validateWorkout(plan).length === 0) return plan
+    const focus = pick(Object.keys(config.compatibility) as FocusId[], random)
+    const pattern = pick(config.compatibility[focus].patterns, random)
+    const finish = pick(config.compatibility[focus].finishes, random)
+    const plan = createPlan(duration, seed >>> 0, focus, pattern, finish, config)
+    if (validateWorkout(plan, SAFETY_RULES, config).length === 0) return plan
   }
-  const fallback = createSafeFallback(duration, seed >>> 0)
-  const issues = validateWorkout(fallback)
+  const fallback = createSafeFallback(duration, seed >>> 0, config)
+  const issues = validateWorkout(fallback, SAFETY_RULES, config)
   if (issues.length > 0) throw new Error(`Safe workout generation failed: ${issues.map((issue) => issue.code).join(', ')}`)
   return fallback
 }
@@ -171,4 +183,3 @@ export function withBookendPreference(plan: WorkoutPlan, kind: 'warmup' | 'coold
   const effectiveDurationSeconds = getEffectiveIntervals(next).reduce((total, interval) => total + interval.durationSeconds, 0)
   return { ...next, effectiveDurationSeconds }
 }
-

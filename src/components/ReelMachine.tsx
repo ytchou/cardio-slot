@@ -13,13 +13,12 @@ export function ReelMachine({ spinning, plan }: ReelMachineProps) {
     ? [FOCUS_LABELS[plan.focus], PATTERN_LABELS[plan.pattern], FINISH_LABELS[plan.finish]]
     : idleValues
   return (
-    <div className={`reel-machine ${spinning ? 'is-spinning' : ''}`} aria-label="Workout reels" aria-live="polite">
+    <div className={`reel-machine ${spinning ? 'is-spinning' : ''}`} aria-label="Workout reels" aria-live="polite" aria-busy={spinning}>
       {values.map((value, index) => (
         <div className="reel-window" key={idleValues[index]}>
-          <span className="reel-value">{spinning ? ['HILLS', 'WAVES', 'SPRINT'][index] : value}</span>
+          <span className="reel-value">{value}</span>
         </div>
       ))}
     </div>
   )
 }
-

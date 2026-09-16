@@ -32,11 +32,11 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
       },
-      devOptions: { enabled: true },
     }),
   ],
   test: {
     environment: 'jsdom',
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     globals: true,
     setupFiles: './src/test/setup.ts',
     coverage: { reporter: ['text', 'json-summary'] },

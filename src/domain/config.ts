@@ -35,10 +35,10 @@ export const FINISH_LABELS: Record<FinishId, string> = {
   climb: 'Climb',
 }
 
-export const THEMES: Record<ThemeId, { label: string; description: string }> = {
-  track: { label: 'Track', description: 'Cinder, chalk, signal red' },
-  neon: { label: 'Neon', description: 'Night, cyan, pulse pink' },
-  mono: { label: 'Mono', description: 'Paper, ink, graphite' },
+export const THEMES: Record<ThemeId, { label: string; description: string; ink: string; paper: string; accent: string; muted: string }> = {
+  track: { label: 'Track', description: 'Cinder, chalk, signal red', ink: '#181713', paper: '#f4f0e6', accent: '#e8442e', muted: '#63705a' },
+  neon: { label: 'Neon', description: 'Night, cyan, pulse pink', ink: '#07131e', paper: '#d8fbff', accent: '#ff4fa7', muted: '#37e6f6' },
+  mono: { label: 'Mono', description: 'Paper, ink, graphite', ink: '#171717', paper: '#f3f1ea', accent: '#5b5b56', muted: '#a7a49b' },
 }
 
 export const COMPATIBILITY: Record<FocusId, { patterns: readonly PatternId[]; finishes: readonly FinishId[] }> = {
@@ -59,4 +59,3 @@ export const SAFETY_RULES = {
   maxEffortRatio: 0.1,
   generationAttempts: 12,
 } as const
-

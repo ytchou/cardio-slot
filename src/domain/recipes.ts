@@ -46,7 +46,7 @@ export const RECIPE_BUILDERS: Record<PatternId, RecipeBuilder> = {
   repeats: (input) => buildFrames(
     input,
     (index) => (index % 4 < 2 ? 'strong' : 'easy'),
-    (index) => inclineFor(input.focus, input.blockIndex % 3),
+    () => inclineFor(input.focus, input.blockIndex % 3),
   ),
   progressive: (input) => buildFrames(
     input,
@@ -54,4 +54,3 @@ export const RECIPE_BUILDERS: Record<PatternId, RecipeBuilder> = {
     (index) => inclineFor(input.focus, Math.floor((index / Math.max(1, input.units - 1)) * 3)),
   ),
 }
-

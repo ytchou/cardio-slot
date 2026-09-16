@@ -9,4 +9,3 @@ describe('Given install guidance is evaluated on an Apple tablet', () => {
     })).toBe(true)
   })
 })
-

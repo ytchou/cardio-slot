@@ -30,4 +30,3 @@ export function savePersistedState(state: PersistedStateV1, storage: Pick<Storag
   }
   return true
 }
-

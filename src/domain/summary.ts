@@ -26,4 +26,3 @@ export function summarizeResult(plan: WorkoutPlan, elapsedSeconds: number, compl
     maximumIncline,
   }
 }
-

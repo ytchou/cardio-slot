@@ -83,4 +83,3 @@ export async function shareOrDownloadResult(file: File) {
   URL.revokeObjectURL(url)
   return 'downloaded' as const
 }
-

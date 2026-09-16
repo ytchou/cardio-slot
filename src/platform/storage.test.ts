@@ -18,4 +18,3 @@ describe('Given saved workout state from the browser', () => {
     expect(loadPersistedState(storage)).toEqual(state)
   })
 })
-

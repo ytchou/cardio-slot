@@ -64,4 +64,3 @@ export function Ticket({ plan, result, children }: TicketProps) {
     </article>
   )
 }
-

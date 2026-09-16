@@ -18,4 +18,3 @@ export function pick<T>(values: readonly T[], random: () => number): T {
 export function randomInteger(min: number, max: number, random: () => number) {
   return min + Math.floor(random() * (max - min + 1))
 }
-

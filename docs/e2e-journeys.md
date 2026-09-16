@@ -13,4 +13,3 @@
 - On iPhone Safari, explain the Add to Home Screen steps.
 - On compatible Chromium browsers, surface the native install prompt without
   blocking workout generation.
-

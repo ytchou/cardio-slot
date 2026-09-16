@@ -3,4 +3,3 @@ export function createWorkoutSeed() {
   crypto.getRandomValues(values)
   return values[0] ?? 0
 }
-

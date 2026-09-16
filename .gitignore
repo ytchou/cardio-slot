@@ -1,7 +1,7 @@
 .worktrees/
 node_modules/
 dist/
+dev-dist/
 playwright-report/
 test-results/
 .DS_Store
-

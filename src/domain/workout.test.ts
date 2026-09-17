@@ -1,5 +1,5 @@
 import { COMPATIBILITY, DURATION_DEFINITIONS } from './config'
-import { generateWorkout, WORKOUT_CONFIG } from './workout'
+import { generateDifferentWorkout, generateWorkout, WORKOUT_CONFIG } from './workout'
 import { validateWorkout } from './validate'
 import type { DurationMinutes } from './types'
 
@@ -85,6 +85,24 @@ describe('Given a runner chooses a total and bookends', () => {
     expect([plan.focus, plan.pattern, plan.finish]).toEqual(['endurance', 'long', 'steady'])
     expect(plan.blocks.flatMap(b => b.intervals).some(i => i.intensity === 'max')).toBe(false)
     expect(validateWorkout(plan)).toEqual([])
+  })
+
+  it('advances past a completed visible workout and fails safely when the bound is exhausted', () => {
+    const completed = generateWorkout(request, 10)
+    const next = generateDifferentWorkout(request, 10, completed)
+    const visible = (plan: typeof completed) => ({
+      request: [plan.durationMinutes, plan.includeWarmup, plan.includeCooldown],
+      reels: [plan.focus, plan.pattern, plan.finish],
+      phases: plan.blocks.map(block => ({
+        kind: block.kind,
+        label: block.label,
+        intervals: block.intervals.map(interval => [interval.durationSeconds, interval.intensity, interval.incline, interval.cue]),
+      })),
+    })
+
+    expect(validateWorkout(next)).toEqual([])
+    expect(visible(next)).not.toEqual(visible(completed))
+    expect(() => generateDifferentWorkout(request, 10, completed, WORKOUT_CONFIG, 1)).toThrow('Safe workout generation failed')
   })
 })
 

@@ -9,7 +9,7 @@ import { Ticket } from './components/Ticket'
 import { TicketDialog } from './components/TicketDialog'
 import { TicketPrinter } from './components/TicketPrinter'
 import { getRunSnapshot } from './domain/runtime'
-import { generateWorkout } from './domain/workout'
+import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
 import { createWorkoutSeed } from './platform/random'
 import { createResultImage, shareOrDownloadResult } from './platform/share'
@@ -26,6 +26,7 @@ export default function App() {
   const [updateReady, setUpdateReady] = useState(false)
   const [offlineReady, setOfflineReady] = useState(false)
   const pullGuard = useRef(false)
+  const previousCompletedPlan = useRef(state.latestResult?.plan ?? null)
   const requestId = useRef(0)
   const deckRef = useRef<HTMLDivElement>(null)
   const paperRef = useRef<HTMLDivElement>(null)
@@ -81,13 +82,22 @@ export default function App() {
     pullGuard.current = true
     try {
       const { durationMinutes, includeWarmup, includeCooldown } = state.preferences
-      const plan = generateWorkout({ durationMinutes, includeWarmup, includeCooldown }, createWorkoutSeed())
+      const request = { durationMinutes, includeWarmup, includeCooldown }
+      const seed = createWorkoutSeed()
+      const plan = previousCompletedPlan.current
+        ? generateDifferentWorkout(request, seed, previousCompletedPlan.current)
+        : generateWorkout(request, seed)
       dispatch({ type: 'pull', requestId: ++requestId.current, plan })
+      previousCompletedPlan.current = null
       setError('')
     } catch {
       pullGuard.current = false
       setError('The ticket could not be generated. Please pull again.')
     }
+  }
+  const pullAnother = () => {
+    previousCompletedPlan.current = state.latestResult?.plan ?? null
+    dispatch({ type: 'new-workout' })
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
   const adjust = () => { close(); window.requestAnimationFrame(() => deckRef.current?.focus()) }
@@ -120,7 +130,7 @@ export default function App() {
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
     {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{state.latestResult.summary.status === 'completed' ? 'Nice work.' : 'You called it.'}</h1><p>{state.latestResult.summary.status === 'completed' ? 'The whole ticket, start to finish.' : 'Listening to your body always counts.'}</p></div>
-      <Ticket plan={state.latestResult.plan} result={state.latestResult.summary}><div className="result-actions"><button className="primary-button" disabled={!resultFile} onClick={() => void shareResult()}>{resultFile ? 'Share result' : 'Preparing image…'}</button><button onClick={() => dispatch({ type: 'new-workout' })}>Pull another</button></div>{shareMessage && <p role="status">{shareMessage}</p>}</Ticket>
+      <Ticket plan={state.latestResult.plan} result={state.latestResult.summary}><div className="result-actions"><button className="primary-button" disabled={!resultFile} onClick={() => void shareResult()}>{resultFile ? 'Share result' : 'Preparing image…'}</button><button onClick={pullAnother}>Pull another</button></div>{shareMessage && <p role="status">{shareMessage}</p>}</Ticket>
     </main>}
     {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><h2 id="install-title">Add to Home Screen</h2><p>In Safari, tap Share, then choose “Add to Home Screen.” Your workouts launch full screen and stay available offline.</p><button autoFocus onClick={installPrompt.closeIosHelp}>Got it</button></dialog>}
   </div>

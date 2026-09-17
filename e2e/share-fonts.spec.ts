@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.use({ serviceWorkers: 'block' })
 
-test('Given an unrelated page font stalls, the runner can still share the completed PNG', async ({ page }) => {
+test('Given an unrelated page font stalls, the runner can still save the completed PNG', async ({ page }) => {
   let releaseFont: () => void = () => {}
   const pendingFont = new Promise<void>(resolve => { releaseFont = resolve })
   await page.route('**/unrelated-font.woff2', async route => { await pendingFont; await route.abort() })

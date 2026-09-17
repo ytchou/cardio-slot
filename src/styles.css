@@ -104,7 +104,7 @@ input:checked + .rocker { background: #18502f; }
 .ticket-phase-toggle::after { content: '+'; position: absolute; right: var(--space-2); top: 0; font: 28px 'IBM Plex Mono',monospace; }
 .ticket-phase-toggle[aria-expanded='true']::after { content: '−'; }
 .ticket-phase-title { display: flex; justify-content: space-between; gap: var(--space-3); font-size: 22px; }
-.ticket-phase-meta { display: block; margin-top: var(--space-1); font: 13px 'IBM Plex Mono',monospace; text-transform: uppercase; }
+.ticket-phase-meta { display: block; margin-top: var(--space-1); font: 16px 'IBM Plex Mono',monospace; text-transform: uppercase; }
 .ticket-effort-strip { display: flex; height: var(--space-2); margin-top: var(--space-2); overflow: hidden; border-radius: var(--radius); background: var(--effort-track); }
 .ticket-effort-strip i { display: block; min-width: 2px; }
 .effort-strip-easy { background: var(--easy-bg); }

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.use({ serviceWorkers: 'block' })
 
-test('Given an unrelated page font stalls, the runner can still share the completed PNG', async ({ page }) => {
+test('Given an unrelated page font stalls, the runner can still save the completed PNG', async ({ page }) => {
   let releaseFont: () => void = () => {}
   const pendingFont = new Promise<void>(resolve => { releaseFont = resolve })
   await page.route('**/unrelated-font.woff2', async route => { await pendingFont; await route.abort() })
@@ -28,10 +28,10 @@ test('Given an unrelated page font stalls, the runner can still share the comple
     await expect.poll(() => page.evaluate(() => document.fonts.status)).toBe('loading')
     await page.getByRole('button', { name: 'End workout', exact: true }).click()
     await page.getByRole('button', { name: 'Yes, end' }).click()
-    await expect(page.getByRole('button', { name: 'Share result' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^(Save|Download) PNG$/ })).toBeEnabled()
     await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false }))
     const download = page.waitForEvent('download')
-    await page.getByRole('button', { name: 'Share result' }).click()
+    await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
     expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
   } finally { releaseFont(); await page.unrouteAll({ behavior: 'wait' }) }
 })
@@ -52,8 +52,8 @@ test('Given result fonts fail or stall, the runner can still download the comple
   })
   await page.getByRole('button', { name: 'End workout', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
-  await expect(page.getByRole('button', { name: 'Share result' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: /^(Save|Download) PNG$/ })).toBeEnabled()
   const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Share result' }).click()
+  await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
 })

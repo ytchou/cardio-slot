@@ -1,0 +1,72 @@
+{
+  "findings": [
+    {
+      "severity": "Minor",
+      "file": "src/styles.css",
+      "line": "107",
+      "description": "Accordion metadata renders at 13px, below the approved 16px minimum for receipt instructions.",
+      "failure_scenario": "A runner reads interval count and effort labels on a compact ticket and receives smaller text than the approved receipt readability floor.",
+      "flagged_by": "Design Quality",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "e2e/workout.spec.ts",
+      "line": "31-51",
+      "description": "New ticket assertions depend on presentation class names and DOM sibling order instead of accessible behavior.",
+      "failure_scenario": "A harmless CSS refactor or wrapper change breaks the journey although the accessible accordion and safety guidance still work.",
+      "flagged_by": "Test Quality",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "e2e/workout.spec.ts",
+      "line": "153-192",
+      "description": "Result-action coverage selects and asserts presentation classes.",
+      "failure_scenario": "Renaming the action container or primary-button class breaks tests without changing action availability, ordering, or download behavior.",
+      "flagged_by": "Test Quality",
+      "status": "valid"
+    },
+    {
+      "severity": "Minor",
+      "file": "src/App.tsx",
+      "line": "32, 112-115",
+      "description": "The prior completed plan is lost if the page reloads after Pull another and before the next pull.",
+      "failure_scenario": "Reloading on configuration removes the comparison plan, so a later pull could reproduce the completed workout.",
+      "flagged_by": "Angle A",
+      "status": "incorrect"
+    },
+    {
+      "severity": "Minor",
+      "file": "src/platform/share.ts",
+      "line": "101-107",
+      "description": "The download object URL is revoked immediately after the synthetic click.",
+      "failure_scenario": "A browser could defer navigation until after revocation and produce an empty download.",
+      "flagged_by": "Angle D",
+      "status": "incorrect"
+    },
+    {
+      "severity": "Minor",
+      "file": "e2e/workout.spec.ts",
+      "line": "153, 175",
+      "description": "The result action tests assert button order.",
+      "failure_scenario": "Reordering buttons would fail the test even when each action remains usable.",
+      "flagged_by": "Test Quality",
+      "status": "incorrect"
+    }
+  ],
+  "active_lenses": [
+    "Angle A",
+    "Angle B",
+    "Angle C",
+    "Angle D",
+    "Angle E",
+    "Cleanup",
+    "Altitude",
+    "Conventions",
+    "Plan Alignment",
+    "Test Quality",
+    "Design Quality",
+    "Dead Code"
+  ]
+}

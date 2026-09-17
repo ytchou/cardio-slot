@@ -6,11 +6,13 @@ Route: `/cardio-slot/`. CI runs Mobile Chrome (Chromium) and Mobile Safari (WebK
 | --- | --- | --- |
 | Duration/bookends/skin persist; timing edits invalidate; skin preserves plan | workout.spec.ts | Reload preferences; close/reopen; settings focus; unchanged exact total |
 | Every printed instruction matches the accepted timeline | workout.spec.ts | Ordered interval identities match the saved plan |
+| Ticket safety and accordion disclosure | workout.spec.ts | Safety guidance is present; Block 1 opens first; one phase stays open; summaries, effort strips, regions and arrow-key focus remain accessible |
 | Rotation during configuration, spinning, printing, opening, receipt, countdown, run and end confirmation | workout.spec.ts | Same plan ID/start timestamp; receipt usable; natural completion persists scheduled endpoint |
 | Reload during countdown and running; delayed advancement | workout.spec.ts | Original future start and final scheduled result retained |
 | Lever keyboard input/reduced motion/modal focus | workout.spec.ts | Enter/Space; trapped Tab; Escape; lever and outlet focus restoration |
 | Timer persistence and motion | workout.spec.ts | Timer ticks cause no durable writes; motion changes preserve the active plan and start |
-| Early result and 1080×1350 file sharing | workout.spec.ts | Actual elapsed result; PNG download; native share boundary receives image under user activation |
+| Completed result repull | workout.spec.ts | Pull another removes the old ticket, revokes its preview URL, runs the full mechanics, and rejects the completed visible workout |
+| Early result and adaptive 1080×1350 file sharing | workout.spec.ts | Exact preview; coarse/fine action order; PNG download; summary copy/failure; native image-only share under user activation; unsupported actions omitted |
 | Sharing while an unrelated page font stalls | share-fonts.spec.ts | Held HTTP font request does not prevent a real PNG download |
 | True offline fresh-page launch | offline.spec.ts | Test-owned HTTP origin is shut down after SW readiness; both engines launch and pull |
 | Deferred service-worker activation | offline.spec.ts | Changed SW waits through spinning/printing/opening/countdown/run, activates after saved completion, reload restores result |

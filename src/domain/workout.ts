@@ -127,3 +127,30 @@ export function generateWorkout(request: WorkoutRequest, seed: number, config: W
   if (issues.length) throw new Error(`Safe workout generation failed: ${issues.map(issue => issue.code).join(', ')}`)
   return fallback
 }
+
+function visibleWorkoutSignature(plan: WorkoutPlan) {
+  return JSON.stringify({
+    request: [plan.durationMinutes, plan.includeWarmup, plan.includeCooldown],
+    reels: [plan.focus, plan.pattern, plan.finish],
+    phases: plan.blocks.map(block => ({
+      kind: block.kind,
+      label: block.label,
+      intervals: block.intervals.map(interval => [interval.durationSeconds, interval.intensity, interval.incline, interval.cue]),
+    })),
+  })
+}
+
+export function generateDifferentWorkout(
+  request: WorkoutRequest,
+  seed: number,
+  previousPlan: WorkoutPlan,
+  config: WorkoutGenerationConfig = WORKOUT_CONFIG,
+  attempts = SAFETY_RULES.generationAttempts,
+) {
+  const previousSignature = visibleWorkoutSignature(previousPlan)
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const plan = generateWorkout(request, (seed + attempt) >>> 0, config)
+    if (visibleWorkoutSignature(plan) !== previousSignature) return plan
+  }
+  throw new Error('Safe workout generation failed: duplicate-workout')
+}

@@ -14,7 +14,9 @@ The sole introduction is “Pull a workout. Run by feel.” Installation, help a
 
 Portrait reserves a lever rail and keeps the complete cabinet discoverable at 390×844. The 360px layout preserves text and control sizing. Short landscape (`orientation: landscape` and `max-height: 540px`) reflows to a lower/wider cabinet: marquee and drums span the width, duration and bookends share the deck, finishes and outlet occupy its lower row. Exceptionally short configuration views scroll vertically.
 
-Receipt uses a native modal dialog almost filling the dynamic viewport. Its heading and actions remain fixed while all phase/interval instructions scroll independently. Landscape actions form one horizontal row. Close preserves the preview, Adjust focuses the deck, and View ticket reopens it. Paper and modal use the same leading layout; handoff measures the source in viewport coordinates, scales/reveals the real receipt, and settles on resize.
+Receipt uses a native modal dialog almost filling the dynamic viewport. Its heading and actions remain fixed while the body scrolls independently. A distinct “Before you start” safety callout follows the heading. Every workout phase remains visible as an accordion summary with duration, interval count, effort labels, and a proportional semantic-color strip; one phase expands at a time and Block 1 opens initially. Hidden interval rows stay mounted as the canonical timeline. Landscape actions form one horizontal row. Close preserves the preview, Adjust focuses the deck, and View ticket reopens it. Paper and modal use the same leading layout; handoff measures the source in viewport coordinates, scales/reveals the real receipt, and settles on resize.
+
+Result screens preview the exact 1080×1350 PNG. Coarse-pointer/mobile actions prioritize Share image, then Save PNG and Copy summary. Fine-pointer/desktop actions prioritize Download PNG and Copy summary, adding Share image only when file sharing is supported. Native sharing contains the image only; the readable text summary is copied separately. Unsupported actions are omitted.
 
 Running has stable semantic backgrounds until the exact interval boundary. Portrait emphasizes effort/countdown above next and End. Landscape puts elapsed/progress/remaining across the top, current phase left, and next/End/options right. Safe-area insets and dynamic viewport units apply. No orientation restriction in the PWA manifest. Rotation never alters workout or timer state.
 
@@ -35,3 +37,5 @@ Lever pull 0–220ms, return through 520ms; drums settle at 1420/1820/2220ms; ho
 ## Acceptance
 
 Inspect portrait 360×800,390×844,430×932; desktop 1440×900; landscape 844×390,932×430,844×320, all finishes and reduced motion. Timed frames/video are required for mechanics. Physical iPhone Safari and Android Chrome, browser and installed modes, plus a real 15-minute treadmill session remain the final human acceptance gate.
+
+Wake-lock success and request states are silent. Denied or unsupported states display “Keep your screen on — automatic display lock is unavailable.” Pull another returns to the cabinet without the old ticket affordance, then runs the complete mechanical sequence and rejects an exact visible repeat of the completed workout.

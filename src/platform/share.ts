@@ -50,7 +50,7 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   context.fillText(`${FOCUS_LABELS[result.focus]} / ${PATTERN_LABELS[result.pattern]} / ${FINISH_LABELS[result.finish]}`, 135, 400)
 
   drawLabel(context, 'TIME', `${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`, 135, 510, theme.ink)
-  drawLabel(context, 'BLOCKS', String(result.blockCount), 650, 510, theme.ink)
+  drawLabel(context, 'MAIN BLOCKS PLANNED', String(result.blockCount), 650, 510, theme.ink)
   drawLabel(context, 'EASY', formatClock(result.intensitySeconds.easy), 135, 670, theme.muted)
   drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 440, 670, theme.ink)
   drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 745, 670, theme.accent)

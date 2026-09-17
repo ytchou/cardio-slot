@@ -1,117 +1,80 @@
 import { summarizeResult } from '../domain/summary'
-import type { DurationMinutes, ResultSummary, RunRecord, ThemeId, WorkoutPlan } from '../domain/types'
-import { withBookendPreference } from '../domain/workout'
-import type { PersistedStateV1 } from '../platform/storage'
+import type { Preferences, RunRecord, WorkoutPlan } from '../domain/types'
+import { DEFAULT_PREFERENCES, type PersistedStateV2, type SavedResult } from '../platform/storage'
 
-export type AppFlow = 'configure' | 'spinning' | 'ticket' | 'countdown' | 'running' | 'result'
-
+export type AppFlow = 'configure' | 'spinning' | 'printing' | 'opening' | 'ticket' | 'countdown' | 'running' | 'result'
 export interface AppState {
   flow: AppFlow
-  duration: DurationMinutes
-  theme: ThemeId
+  preferences: Preferences
   currentTicket: WorkoutPlan | null
   activeRun: RunRecord | null
-  latestResult: ResultSummary | null
-  countdownStartedAt: number | null
+  latestResult: SavedResult | null
+  requestId: number
   now: number
   confirmEnd: boolean
 }
-
 export type AppAction =
-  | { type: 'set-duration'; duration: DurationMinutes }
-  | { type: 'set-theme'; theme: ThemeId }
-  | { type: 'pull'; plan: WorkoutPlan }
-  | { type: 'reveal' }
-  | { type: 'toggle-bookend'; kind: 'warmup' | 'cooldown'; included: boolean }
-  | { type: 'start-countdown'; timestamp: number }
-  | { type: 'start-run'; timestamp: number }
-  | { type: 'tick'; timestamp: number }
-  | { type: 'request-end' }
-  | { type: 'cancel-end' }
-  | { type: 'end-run'; timestamp: number }
-  | { type: 'new-workout' }
+  | { type: 'preferences'; patch: Partial<Preferences> }
+  | { type: 'pull'; plan: WorkoutPlan; requestId: number }
+  | { type: 'sequence'; flow: 'printing' | 'opening' | 'ticket'; requestId: number }
+  | { type: 'close-ticket' | 'open-ticket' | 'request-end' | 'cancel-end' | 'new-workout' }
+  | { type: 'start-countdown' | 'tick' | 'end-run'; timestamp: number }
 
-export function createInitialState(saved: PersistedStateV1 | null, now = Date.now()): AppState {
+export function machineBusy(flow: AppFlow) { return flow === 'spinning' || flow === 'printing' || flow === 'opening' }
+export function sessionActive(flow: AppFlow) { return flow === 'countdown' || flow === 'running' }
+
+export function createInitialState(saved: PersistedStateV2 | null, now = Date.now()): AppState {
   const activeRun = saved?.activeRun ?? null
-  const currentTicket = activeRun?.plan ?? saved?.currentTicket ?? null
-  return {
-    flow: activeRun ? 'running' : saved?.latestResult && currentTicket ? 'result' : currentTicket ? 'ticket' : 'configure',
-    duration: currentTicket?.durationMinutes ?? 30,
-    theme: saved?.theme ?? 'track',
-    currentTicket,
-    activeRun,
-    latestResult: saved?.latestResult ?? null,
-    countdownStartedAt: null,
-    now,
-    confirmEnd: false,
+  const state: AppState = {
+    flow: activeRun ? (now < activeRun.startTimestamp ? 'countdown' : 'running') : saved?.currentTicket ? 'configure' : saved?.latestResult ? 'result' : 'configure',
+    preferences: saved?.preferences ?? { ...DEFAULT_PREFERENCES }, currentTicket: saved?.currentTicket ?? null,
+    activeRun, latestResult: saved?.latestResult ?? null, requestId: 0, now, confirmEnd: false,
   }
+  return activeRun ? appReducer(state, { type: 'tick', timestamp: now }) : state
+}
+
+function finishRun(state: AppState, now: number): AppState {
+  if (!state.activeRun) return state
+  const { plan, startTimestamp } = state.activeRun
+  const completedAt = Math.min(now, startTimestamp + plan.effectiveDurationSeconds * 1000)
+  return { ...state, flow: 'result', now, activeRun: null, currentTicket: null, confirmEnd: false,
+    latestResult: { plan, summary: summarizeResult(plan, Math.max(0, (now - startTimestamp) / 1000), completedAt) } }
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case 'set-duration': return { ...state, duration: action.duration }
-    case 'set-theme': return { ...state, theme: action.theme }
-    case 'pull': return { ...state, flow: 'spinning', currentTicket: action.plan, latestResult: null, confirmEnd: false }
-    case 'reveal': return { ...state, flow: 'ticket' }
-    case 'toggle-bookend': return state.currentTicket ? {
-      ...state,
-      currentTicket: withBookendPreference(state.currentTicket, action.kind, action.included),
-    } : state
-    case 'start-countdown': return { ...state, flow: 'countdown', countdownStartedAt: action.timestamp, now: action.timestamp }
-    case 'start-run': return state.currentTicket ? {
-      ...state,
-      flow: 'running',
-      countdownStartedAt: null,
-      activeRun: { plan: state.currentTicket, startTimestamp: action.timestamp },
-      now: action.timestamp,
+    case 'preferences': {
+      if (machineBusy(state.flow) || (sessionActive(state.flow) && Object.keys(action.patch).some(key => key !== 'motion'))) return state
+      const preferences = { ...state.preferences, ...action.patch }
+      const changed = preferences.durationMinutes !== state.preferences.durationMinutes || preferences.includeWarmup !== state.preferences.includeWarmup || preferences.includeCooldown !== state.preferences.includeCooldown
+      return { ...state, preferences, currentTicket: changed ? null : state.currentTicket, flow: changed ? 'configure' : state.flow }
+    }
+    case 'pull':
+      if (!['configure', 'ticket'].includes(state.flow) || action.requestId <= state.requestId) return state
+      return { ...state, flow: 'spinning', requestId: action.requestId, currentTicket: action.plan, confirmEnd: false }
+    case 'sequence': {
+      if (action.requestId !== state.requestId || !machineBusy(state.flow)) return state
+      const order = ['spinning', 'printing', 'opening', 'ticket']
+      if (order.indexOf(action.flow) <= order.indexOf(state.flow)) return state
+      return { ...state, flow: action.flow }
+    }
+    case 'open-ticket': return state.flow === 'configure' && state.currentTicket ? { ...state, flow: 'ticket' } : state
+    case 'close-ticket': return state.flow === 'ticket' ? { ...state, flow: 'configure' } : state
+    case 'start-countdown': return state.flow === 'ticket' && state.currentTicket ? {
+      ...state, flow: 'countdown', activeRun: { plan: state.currentTicket, startTimestamp: action.timestamp + 5000 }, now: action.timestamp,
     } : state
     case 'tick': {
-      if (!state.activeRun || action.timestamp < state.activeRun.startTimestamp) return { ...state, now: action.timestamp }
-      const elapsedSeconds = (action.timestamp - state.activeRun.startTimestamp) / 1000
-      if (elapsedSeconds < state.activeRun.plan.effectiveDurationSeconds) return { ...state, now: action.timestamp }
-      return {
-        ...state,
-        flow: 'result',
-        now: action.timestamp,
-        latestResult: summarizeResult(state.activeRun.plan, elapsedSeconds, action.timestamp),
-        currentTicket: state.activeRun.plan,
-        activeRun: null,
-        confirmEnd: false,
-      }
-    }
-    case 'request-end': return { ...state, confirmEnd: true }
-    case 'cancel-end': return { ...state, confirmEnd: false }
-    case 'end-run': {
       if (!state.activeRun) return state
-      const elapsedSeconds = Math.max(0, (action.timestamp - state.activeRun.startTimestamp) / 1000)
-      return {
-        ...state,
-        flow: 'result',
-        now: action.timestamp,
-        latestResult: summarizeResult(state.activeRun.plan, elapsedSeconds, action.timestamp),
-        currentTicket: state.activeRun.plan,
-        activeRun: null,
-        confirmEnd: false,
-      }
+      if (action.timestamp >= state.activeRun.startTimestamp + state.activeRun.plan.effectiveDurationSeconds * 1000) return finishRun(state, action.timestamp)
+      return { ...state, now: action.timestamp, flow: action.timestamp < state.activeRun.startTimestamp ? 'countdown' : 'running' }
     }
-    case 'new-workout': return state.flow === 'running' || state.flow === 'countdown' ? state : {
-      ...state,
-      flow: 'configure',
-      currentTicket: null,
-      activeRun: null,
-      latestResult: null,
-      countdownStartedAt: null,
-      confirmEnd: false,
-    }
+    case 'request-end': return state.flow === 'running' ? { ...state, confirmEnd: true } : state
+    case 'cancel-end': return { ...state, confirmEnd: false }
+    case 'end-run': return state.confirmEnd ? finishRun(state, action.timestamp) : state
+    case 'new-workout': return sessionActive(state.flow) || machineBusy(state.flow) ? state : { ...state, flow: 'configure', latestResult: null, confirmEnd: false }
   }
 }
 
-export function toPersistedState(state: AppState): PersistedStateV1 {
-  return {
-    version: 1,
-    theme: state.theme,
-    currentTicket: state.currentTicket,
-    activeRun: state.activeRun,
-    latestResult: state.latestResult,
-  }
+export function toPersistedState(state: AppState): PersistedStateV2 {
+  return { version: 2, preferences: state.preferences, currentTicket: state.currentTicket, activeRun: state.activeRun, latestResult: state.latestResult }
 }

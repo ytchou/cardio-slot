@@ -1,62 +1,37 @@
 # Cardio Slot visual direction
 
-## Concept
+Approved 17 September 2026. The former flat console/two-column configurator is historical.
 
-A treadmill console meets a thermal race ticket. The machine is quiet and
-instrumental; the pull, reel stop, and ticket print are the single orchestrated
-moment of delight.
+## Cabinet
 
-## Tokens
+One physical enclosure: cream enamel with darker sidewalls, rolled chrome perimeter, red CARDIO SLOT marquee, recessed dark glass drums, and a right-hand lever rail with bracket, pivot, rod and red knob. Repeated different registered labels move through each drum. Integrated controls put duration above bookend rockers, then compact finishes. A recessed printer well feeds a short leading receipt through a slit behind a foreground lip.
 
-### Track
+Track uses cream/red/chrome; Neon uses navy lacquer/cyan trim/magenta; Mono uses brushed metal/graphite. All share geometry. These material tokens are separate from workout semantics. Barlow Condensed is the display/instruction face; IBM Plex Mono is the timer/data face. Receipt instructions are at least 16px; interactive targets at least 48×48px.
 
-- Cinder `#181713`
-- Chalk `#F4F0E6`
-- Signal red `#E8442E`
-- Track clay `#B84A36`
-- Moss `#63705A`
+The sole introduction is “Pull a workout. Run by feel.” Installation, help and offline status are secondary. Total includes enabled warm-up, cooldown and recoveries.
 
-### Neon
+## Responsive behavior
 
-- Night `#07131E`
-- Screen `#D8FBFF`
-- Electric cyan `#37E6F6`
-- Pulse magenta `#FF4FA7`
-- Deep blue `#12364A`
+Portrait reserves a lever rail and keeps the complete cabinet discoverable at 390×844. The 360px layout preserves text and control sizing. Short landscape (`orientation: landscape` and `max-height: 540px`) reflows to a lower/wider cabinet: marquee and drums span the width, duration and bookends share the deck, finishes and outlet occupy its lower row. Exceptionally short configuration views scroll vertically.
 
-### Mono
+Receipt uses a native modal dialog almost filling the dynamic viewport. Its heading and actions remain fixed while all phase/interval instructions scroll independently. Landscape actions form one horizontal row. Close preserves the preview, Adjust focuses the deck, and View ticket reopens it. Paper and modal use the same leading layout; handoff measures the source in viewport coordinates, scales/reveals the real receipt, and settles on resize.
 
-- Carbon `#171717`
-- Paper `#F3F1EA`
-- Graphite `#5B5B56`
-- Mid grey `#A7A49B`
-- White `#FFFFFF`
+Running has stable semantic backgrounds until the exact interval boundary. Portrait emphasizes effort/countdown above next and End. Landscape puts elapsed/progress/remaining across the top, current phase left, and next/End/options right. Safe-area insets and dynamic viewport units apply. No orientation restriction in the PWA manifest. Rotation never alters workout or timer state.
 
-Barlow Condensed is the athletic display face. IBM Plex Mono is reserved for
-readouts, ticket metadata, and controls.
+| State | Background | Foreground |
+| --- | --- | --- |
+| Easy | #164B35 | #F4F7EE |
+| Strong | #F2BB46 | #231C12 |
+| Max | #A52C32 | #FFF5EB |
+| Recovery | #DCE9E3 | #173A2D |
+| Next | #F9F5E9 | #18251D |
 
-## Layout
+Phase and effort remain textual. NEXT IN appears only within the next panel for the final five seconds, including incline-only changes and final FINISH. Progress-track sheen is the only ongoing decorative motion. User suppression never pauses timing; system reduced motion takes precedence.
 
-Desktop uses a centered machine shell with configuration at left and the
-working console/ticket at right. Mobile collapses to one focused column with
-the primary action always reachable.
+## Mechanical timing
 
-```text
-┌─────────────────────────────────────────────┐
-│ CARDIO SLOT                     install/help │
-├─────────────────┬───────────────────────────┤
-│ duration / skin │  [ FOCUS PATTERN FINISH ] │
-│ safety note     │          PULL             │
-│                 │       printed ticket      │
-└─────────────────┴───────────────────────────┘
-```
+Lever pull 0–220ms, return through 520ms; drums settle at 1420/1820/2220ms; hold until 2470ms; leading paper feeds through 3070ms; dialog handoff settles at 3570ms. Forward lever pivot stays inside the reserved rail. No animation event is necessary to reach a usable ticket. Request IDs guard stale completions.
 
-## Interaction principles
+## Acceptance
 
-- Use borders, perforations, progress rails, and physical controls as real
-  structure, not ornament.
-- Keep body copy sentence case and concise; machine labels may use restrained
-  uppercase where the real-world console metaphor requires it.
-- All controls have at least a 48px target, visible focus, 4.5:1 body contrast,
-  and reduced-motion alternatives.
-- No decorative gradients, floating SaaS cards, or incidental entrance motion.
+Inspect portrait 360×800,390×844,430×932; desktop 1440×900; landscape 844×390,932×430,844×320, all finishes and reduced motion. Timed frames/video are required for mechanics. Physical iPhone Safari and Android Chrome, browser and installed modes, plus a real 15-minute treadmill session remain the final human acceptance gate.

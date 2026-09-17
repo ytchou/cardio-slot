@@ -1,4 +1,4 @@
-import { getEffectiveIntervals } from './workout'
+import { getEffectiveIntervals } from './timeline'
 import type { Intensity, ResultSummary, WorkoutPlan } from './types'
 
 export function summarizeResult(plan: WorkoutPlan, elapsedSeconds: number, completedAt: number): ResultSummary {

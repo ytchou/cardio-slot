@@ -1,0 +1,142 @@
+[
+  {
+    "width": 360,
+    "height": 800,
+    "scrollWidth": 360,
+    "scrollHeight": 800,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 312,
+        "height": 56
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 342,
+        "height": 56
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "scrollWidth": 430,
+    "scrollHeight": 932,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 382,
+        "height": 56
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "scrollWidth": 1440,
+    "scrollHeight": 900,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 1392,
+        "height": 56
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "scrollWidth": 844,
+    "scrollHeight": 390,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 386,
+        "height": 49
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 932,
+    "height": 430,
+    "scrollWidth": 932,
+    "scrollHeight": 430,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 430,
+        "height": 49
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "width": 844,
+    "height": 320,
+    "scrollWidth": 844,
+    "scrollHeight": 320,
+    "foreground": "rgb(244, 247, 238)",
+    "background": "rgb(22, 75, 53)",
+    "controls": [
+      {
+        "label": "End workout",
+        "width": 386,
+        "height": 49
+      },
+      {
+        "label": "Motion off",
+        "width": 89.953125,
+        "height": 48
+      }
+    ]
+  }
+]

@@ -1,66 +1,42 @@
 import { FINISH_LABELS, FOCUS_LABELS, PATTERN_LABELS } from '../domain/config'
+import { getEffectiveIntervals } from '../domain/timeline'
 import type { ResultSummary, WorkoutPlan } from '../domain/types'
 
-interface TicketProps {
-  plan: WorkoutPlan
-  result?: ResultSummary | null
-  children?: React.ReactNode
-}
-
 export function formatDuration(seconds: number) {
-  const minutes = Math.floor(seconds / 60)
-  const remainder = Math.floor(seconds % 60)
-  return `${minutes}:${remainder.toString().padStart(2, '0')}`
+  return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`
 }
 
-export function Ticket({ plan, result, children }: TicketProps) {
-  const mainBlocks = plan.blocks.filter((block) => block.kind === 'main')
-  const heading = result ? (result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED') : 'YOUR WORKOUT'
-  return (
-    <article className={`ticket ${result?.status === 'completed' ? 'ticket-complete' : ''}`} aria-label={result ? 'Workout result ticket' : 'Workout plan ticket'}>
-      <div className="ticket-tear" aria-hidden="true" />
-      <header className="ticket-header">
-        <span className="ticket-brand">CARDIO SLOT</span>
-        <span>{result ? new Date(result.dateIso).toLocaleDateString(undefined, { dateStyle: 'medium' }) : `SEED ${plan.seed.toString(16).toUpperCase().padStart(8, '0')}`}</span>
-      </header>
-      <h2>{heading}</h2>
-      <p className="ticket-reels">
-        <strong>{FOCUS_LABELS[plan.focus]}</strong>
-        <span>{PATTERN_LABELS[plan.pattern]}</span>
-        <span>{FINISH_LABELS[plan.finish]}</span>
-      </p>
+export function TicketHeading({ plan }: { plan: WorkoutPlan }) {
+  return <header className="ticket-heading"><span className="ticket-brand">CARDIO SLOT</span><h2>Your workout</h2>
+    <p className="ticket-reels">{FOCUS_LABELS[plan.focus]} / {PATTERN_LABELS[plan.pattern]} / {FINISH_LABELS[plan.finish]}</p>
+    <p className="ticket-duration"><strong>{formatDuration(plan.effectiveDurationSeconds)}</strong> total</p>
+  </header>
+}
 
-      {result ? (
-        <div className="result-grid">
-          <div><span>Time</span><strong>{formatDuration(result.elapsedSeconds)} / {formatDuration(result.plannedSeconds)}</strong></div>
-          <div><span>Blocks</span><strong>{result.blockCount}</strong></div>
-          <div><span>Easy</span><strong>{formatDuration(result.intensitySeconds.easy)}</strong></div>
-          <div><span>Strong</span><strong>{formatDuration(result.intensitySeconds.strong)}</strong></div>
-          <div><span>Max</span><strong>{formatDuration(result.intensitySeconds.max)}</strong></div>
-          <div><span>Top incline</span><strong>{result.maximumIncline}%</strong></div>
-        </div>
-      ) : (
-        <>
-          <div className="ticket-duration">
-            <span>Run time</span>
-            <strong>{formatDuration(plan.effectiveDurationSeconds)}</strong>
-          </div>
-          <ol className="block-list">
-            {plan.blocks.filter((block) =>
-              (block.kind !== 'warmup' || plan.includeWarmup) && (block.kind !== 'cooldown' || plan.includeCooldown),
-            ).map((block) => (
-              <li key={block.id}>
-                <span>{block.label}</span>
-                <span>{formatDuration(block.intervals.reduce((total, interval) => total + interval.durationSeconds, 0))}</span>
-                <span>{block.kind === 'main' ? `${block.intervals.length} cues` : 'Easy · 1%'}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="ticket-footnote">{mainBlocks.length} main blocks · Incline 1–8% · Pace by feel</p>
-        </>
-      )}
-      {children}
-      <div className="ticket-code" aria-hidden="true">|||| || ||||| | |||| ||| |</div>
-    </article>
-  )
+export function Ticket({ plan, result, children }: { plan: WorkoutPlan; result?: ResultSummary; children?: React.ReactNode }) {
+  const intervals = getEffectiveIntervals(plan)
+  const inclines = intervals.map(interval => interval.incline)
+  return <article className="ticket" aria-label={result ? 'Workout result ticket' : 'Workout plan ticket'}>
+    {result ? <><header className="ticket-heading"><span className="ticket-brand">CARDIO SLOT</span><h2>{result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED'}</h2></header>
+      <div className="result-grid">
+        <div><span>Time</span><strong>{formatDuration(result.elapsedSeconds)} / {formatDuration(result.plannedSeconds)}</strong></div>
+        <div><span>Main blocks planned</span><strong>{result.blockCount}</strong></div>
+        {(['easy', 'strong', 'max'] as const).map(effort => <div key={effort}><span>{effort}</span><strong>{formatDuration(result.intensitySeconds[effort])}</strong></div>)}
+        <div><span>Top incline</span><strong>{result.maximumIncline}%</strong></div>
+      </div></> : <>
+      <TicketHeading plan={plan} />
+      <div className="ticket-body" tabIndex={0} aria-label="Workout instructions">
+        {plan.blocks.map(block => <section className="ticket-phase" key={block.id}><h3><span>{block.label}</span><span>{formatDuration(block.intervals.reduce((total, interval) => total + interval.durationSeconds, 0))}</span></h3>
+          <ol>{block.intervals.map(interval => <li key={interval.id} data-interval-id={interval.id}>
+            <div className="ticket-interval"><time>{formatDuration(interval.durationSeconds)}</time><strong>{interval.intensity}</strong><span>{interval.incline}%</span></div><p>{interval.cue}</p>
+          </li>)}</ol>
+        </section>)}
+        <p>{plan.blocks.filter(block => block.kind === 'main').length} main blocks · Incline {Math.min(...inclines)}–{Math.max(...inclines)}%</p>
+        <p className="ticket-seed">Seed {plan.seed.toString(16).toUpperCase().padStart(8, '0')}</p>
+        <p>Pace by feel. Adjust freely. Stop if you feel pain, dizziness, or unwell.</p>
+      </div>
+    </>}
+    {plan.generationVersion === 1 && <p>Saved session · original timing</p>}
+    {children}
+  </article>
 }

@@ -14,3 +14,6 @@ Cream enamel cabinet, red CARDIO SLOT marquee, substantial chrome perimeter, dar
 
 ## Constraints and risks
 Preserve framework/dependencies/package manager and deployment. No backend/audio/accounts/history/integrations/upgrades. Rotation must not regenerate/restart. Main risk: physical visual cues during exercise cannot be established by emulation. Physical iPhone/Android browser and installed checks plus a real 15-minute treadmill session require human device access and remain explicitly unverified until performed. A failed persistence write must be visible and must not silently permit an update to discard the session. Verification must distinguish emulated evidence from physical acceptance.
+
+## Acceptance update — 17 September 2026
+The user explicitly accepted automated verification for this PR and deferred physical iPhone/Android checks and the real treadmill session. Keep those checks documented as follow-up limitations, not a gate for PR readiness.

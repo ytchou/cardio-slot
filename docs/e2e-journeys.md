@@ -11,6 +11,7 @@ Route: `/cardio-slot/`. CI runs Mobile Chrome (Chromium) and Mobile Safari (WebK
 | Lever keyboard input/reduced motion/modal focus | workout.spec.ts | Enter/Space; trapped Tab; Escape; lever and outlet focus restoration |
 | Timer persistence and motion | workout.spec.ts | Timer ticks cause no durable writes; motion changes preserve the active plan and start |
 | Early result and 1080×1350 file sharing | workout.spec.ts | Actual elapsed result; PNG download; native share boundary receives image under user activation |
+| Sharing while an unrelated page font stalls | share-fonts.spec.ts | Held HTTP font request does not prevent a real PNG download |
 | True offline fresh-page launch | offline.spec.ts | Test-owned HTTP origin is shut down after SW readiness; both engines launch and pull |
 | Deferred service-worker activation | offline.spec.ts | Changed SW waits through spinning/printing/opening/countdown/run, activates after saved completion, reload restores result |
 | iPhone installation guidance | workout.spec.ts | Safari sees Add to Home Screen instructions (only this platform-specific test skips Chromium) |

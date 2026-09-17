@@ -16,7 +16,12 @@ function drawLabel(context: CanvasRenderingContext2D, label: string, value: stri
 }
 
 export async function createResultImage(plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId) {
-  await document.fonts.ready
+  await Promise.all([
+    '700 45px "Barlow Condensed"',
+    '800 118px "Barlow Condensed"',
+    '600 48px "Barlow Condensed"',
+    '500 25px "IBM Plex Mono"',
+  ].map(font => document.fonts.load(font)))
   const theme = THEMES[themeId]
   const canvas = document.createElement('canvas')
   canvas.width = 1080

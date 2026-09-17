@@ -94,6 +94,17 @@
     },
     {
       "severity": "Important",
+      "file": "src/platform/share.ts",
+      "line": "19",
+      "description": "Result generation waits for unrelated page fonts.",
+      "failure_scenario": "A pending font unused by the Canvas keeps document.fonts.ready unresolved, leaving the result stuck at Preparing image even when every required Canvas face is loaded.",
+      "flagged_by": "CI follow-up / Angle A",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Load only the four required Canvas font faces in parallel. A held HTTP font request reproduces the timeout before the fix; the actual PNG download passes afterwards in Chromium and WebKit."
+    },
+    {
+      "severity": "Important",
       "file": "docs/plans/cardio-slot-redesign-plan.md",
       "line": "15",
       "description": "Physical iPhone/Android and real treadmill acceptance cannot be established in browser emulation.",
@@ -101,7 +112,7 @@
       "flagged_by": "Plan Alignment",
       "status": "escalate",
       "verdict": "CONFIRMED",
-      "escalation_note": "Keep the PR draft until physical browser/installed checks and a real 15-minute treadmill session are performed; no physical acceptance is claimed."
+      "escalation_note": "The user explicitly accepted automated verification for this PR on 17 September 2026 and deferred physical checks. They are no longer a PR acceptance gate; no physical validation is claimed."
     }
   ]
 }

@@ -1,0 +1,30 @@
+[
+  {
+    "kind": "easy",
+    "background": "rgb(22, 75, 53)",
+    "foreground": "rgb(244, 247, 238)",
+    "contrast": 9.266712802745142,
+    "nextContrast": 14.581780952347948
+  },
+  {
+    "kind": "max",
+    "background": "rgb(165, 44, 50)",
+    "foreground": "rgb(255, 245, 235)",
+    "contrast": 6.490789904101406,
+    "nextContrast": 14.581780952347948
+  },
+  {
+    "kind": "strong",
+    "background": "rgb(242, 187, 70)",
+    "foreground": "rgb(35, 28, 18)",
+    "contrast": 9.606040320103821,
+    "nextContrast": 14.581780952347948
+  },
+  {
+    "kind": "recovery",
+    "background": "rgb(220, 233, 227)",
+    "foreground": "rgb(23, 58, 45)",
+    "contrast": 10.007406921908292,
+    "nextContrast": 14.581780952347948
+  }
+]

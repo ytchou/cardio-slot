@@ -1,4 +1,4 @@
-import { getEffectiveIntervals } from './workout'
+import { getEffectiveIntervals } from './timeline'
 import type { IntervalTransition, RunSnapshot, WorkoutPlan } from './types'
 
 export function getRunSnapshot(plan: WorkoutPlan, startTimestamp: number, now: number): RunSnapshot {
@@ -13,10 +13,8 @@ export function getRunSnapshot(plan: WorkoutPlan, startTimestamp: number, now: n
     ? Math.max(0, Math.min(currentInterval.durationSeconds, elapsedSeconds - currentInterval.startSeconds))
     : 0
   const mainBlockIds = [...new Set(plan.blocks.filter((block) => block.kind === 'main').map((block) => block.id))]
-  const activeBlocks = plan.blocks.filter((block) =>
-    (block.kind !== 'warmup' || plan.includeWarmup) && (block.kind !== 'cooldown' || plan.includeCooldown),
-  )
-  const blockIndex = currentInterval ? Math.max(0, activeBlocks.findIndex((block) => block.id === currentInterval.blockId)) : 0
+  const phase = plan.blocks.find(block => block.id === currentInterval?.blockId)
+  const blockIndex = (phase?.mainBlockIndex ?? phase?.nextMainBlockIndex ?? 1) - 1
 
   return {
     status,
@@ -29,18 +27,24 @@ export function getRunSnapshot(plan: WorkoutPlan, startTimestamp: number, now: n
     intervalRemainingSeconds: currentInterval ? Math.max(0, currentInterval.durationSeconds - intervalElapsedSeconds) : 0,
     intervalProgress: currentInterval ? intervalElapsedSeconds / currentInterval.durationSeconds : 1,
     nextInterval: intervals[intervalIndex + 1] ?? null,
+    phaseLabel: phase?.label ?? 'Workout',
+    phaseKind: phase?.kind ?? 'main',
     blockIndex,
-    blockCount: mainBlockIds.length + Number(plan.includeWarmup) + Number(plan.includeCooldown),
+    blockCount: mainBlockIds.length,
   }
 }
 
 export function getIntervalTransition(
   snapshot: RunSnapshot,
-  lastAnnouncedIntervalId: string | null,
+  lastAnnouncedIdentity: string | null,
   reason: 'tick' | 'resume',
+  runIdentity: string,
 ): IntervalTransition | null {
-  if (!snapshot.currentInterval || snapshot.currentInterval.id === lastAnnouncedIntervalId) return null
+  if (!snapshot.currentInterval || snapshot.status === 'complete') return null
+  const identity = `${runIdentity}:${snapshot.currentInterval.id}`
+  if (identity === lastAnnouncedIdentity) return null
   return {
+    identity,
     interval: snapshot.currentInterval,
     elapsedBoundarySeconds: snapshot.currentInterval.startSeconds,
     reason,

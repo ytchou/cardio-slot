@@ -4,6 +4,17 @@ export type FocusId = 'endurance' | 'hills' | 'speed' | 'mixed'
 export type PatternId = 'long' | 'waves' | 'ladder' | 'repeats' | 'progressive'
 export type FinishId = 'steady' | 'fast-close' | 'sprint' | 'climb'
 export type ThemeId = 'track' | 'neon' | 'mono'
+export interface WorkoutRequest {
+  durationMinutes: DurationMinutes
+  includeWarmup: boolean
+  includeCooldown: boolean
+}
+
+export interface Preferences extends WorkoutRequest {
+  theme: ThemeId
+  motion: boolean
+}
+
 export type BookendKind = 'warmup' | 'cooldown'
 
 export interface WorkoutInterval {
@@ -20,7 +31,9 @@ export interface WorkoutInterval {
 export interface WorkoutBlock {
   id: string
   label: string
-  kind: 'warmup' | 'main' | 'cooldown'
+  kind: 'warmup' | 'main' | 'recovery' | 'cooldown'
+  mainBlockIndex?: number
+  nextMainBlockIndex?: number
   intervals: WorkoutInterval[]
 }
 
@@ -28,7 +41,7 @@ export interface WorkoutPlan {
   id: string
   seed: number
   durationMinutes: DurationMinutes
-  plannedDurationSeconds: number
+  generationVersion: 1 | 2
   effectiveDurationSeconds: number
   focus: FocusId
   pattern: PatternId
@@ -67,11 +80,14 @@ export interface RunSnapshot {
   intervalRemainingSeconds: number
   intervalProgress: number
   nextInterval: WorkoutInterval | null
+  phaseLabel: string
+  phaseKind: WorkoutBlock['kind']
   blockIndex: number
   blockCount: number
 }
 
 export interface IntervalTransition {
+  identity: string
   interval: WorkoutInterval
   elapsedBoundarySeconds: number
   reason: 'tick' | 'resume'

@@ -1,37 +1,46 @@
 import { generateWorkout } from '../domain/workout'
 import { appReducer, createInitialState, toPersistedState } from './state'
 
-describe('Given the workout app is resumed or advanced', () => {
-  const plan = generateWorkout(15, 123_456)
-  const start = Date.UTC(2026, 8, 17, 8, 0, 0)
+const plan = generateWorkout({ durationMinutes: 15, includeWarmup: true, includeCooldown: true }, 123456)
+const start = Date.UTC(2026, 8, 17, 8)
+function ticket() {
+  return appReducer(appReducer(createInitialState(null, start), { type: 'pull', plan, requestId: 1 }), { type: 'sequence', flow: 'ticket', requestId: 1 })
+}
 
-  it('restores an active run and catches up from its absolute timestamp', () => {
-    const saved = { version: 1 as const, theme: 'track' as const, currentTicket: plan, activeRun: { plan, startTimestamp: start }, latestResult: null }
-    const restored = createInitialState(saved, start + 600_000)
-    expect(restored.flow).toBe('running')
-    expect(appReducer(restored, { type: 'tick', timestamp: start + 600_000 }).flow).toBe('running')
-    const completed = appReducer(restored, { type: 'tick', timestamp: start + plan.effectiveDurationSeconds * 1000 + 1 })
-    expect(completed.flow).toBe('result')
-    expect(completed.latestResult?.status).toBe('completed')
+describe('Given a runner configures and resumes a session', () => {
+  it('invalidates a ticket on timing edits permanently while finish edits preserve it', () => {
+    const initial = ticket()
+    const skin = appReducer(initial, { type: 'preferences', patch: { theme: 'neon' } })
+    expect(skin.currentTicket).toBe(plan)
+    const changed = appReducer(skin, { type: 'preferences', patch: { includeCooldown: false } })
+    expect(changed.currentTicket).toBeNull()
+    expect(appReducer(changed, { type: 'preferences', patch: { includeCooldown: true } }).currentTicket).toBeNull()
   })
-
-  it('persists only the versioned durable state', () => {
-    const state = createInitialState(null, start)
-    const ticket = appReducer(appReducer(state, { type: 'pull', plan }), { type: 'reveal' })
-    const running = appReducer(ticket, { type: 'start-run', timestamp: start })
-    expect(toPersistedState(running)).toEqual({
-      version: 1,
-      theme: 'track',
-      currentTicket: plan,
-      activeRun: { plan, startTimestamp: start },
-      latestResult: null,
-    })
+  it('rejects duplicate pulls, stale completions, and configuration during mechanics', () => {
+    const spinning = appReducer(createInitialState(null), { type: 'pull', plan, requestId: 4 })
+    expect(appReducer(spinning, { type: 'pull', plan, requestId: 5 })).toBe(spinning)
+    expect(appReducer(spinning, { type: 'sequence', flow: 'ticket', requestId: 3 })).toBe(spinning)
+    expect(appReducer(spinning, { type: 'preferences', patch: { durationMinutes: 60 } })).toBe(spinning)
+    expect(appReducer(spinning, { type: 'sequence', flow: 'ticket', requestId: 4 }).flow).toBe('ticket')
   })
-
-  it('keeps an active workout when the home action is triggered accidentally', () => {
-    const state = createInitialState(null, start)
-    const ticket = appReducer(appReducer(state, { type: 'pull', plan }), { type: 'reveal' })
-    const running = appReducer(ticket, { type: 'start-run', timestamp: start })
-    expect(appReducer(running, { type: 'new-workout' })).toBe(running)
+  it('persists the future start so countdown and running reload keep their position', () => {
+    const countdown = appReducer(ticket(), { type: 'start-countdown', timestamp: start })
+    expect(countdown.activeRun?.startTimestamp).toBe(start + 5000)
+    expect(createInitialState(toPersistedState(countdown), start + 2000).flow).toBe('countdown')
+    const resumed = createInitialState(toPersistedState(countdown), start + 65000)
+    expect(resumed.flow).toBe('running')
+    expect(resumed.activeRun?.startTimestamp).toBe(start + 5000)
+    expect(toPersistedState(appReducer(resumed, { type: 'tick', timestamp: start + 66000 }))).toEqual(toPersistedState(resumed))
+    expect(appReducer(resumed, { type: 'new-workout' })).toBe(resumed)
+  })
+  it('uses the scheduled endpoint when natural completion wins an end confirmation race', () => {
+    const countdown = appReducer(ticket(), { type: 'start-countdown', timestamp: start })
+    const running = appReducer(countdown, { type: 'tick', timestamp: start + 6000 })
+    const confirming = appReducer(running, { type: 'request-end' })
+    const ended = appReducer(confirming, { type: 'end-run', timestamp: start + 1000000 })
+    expect(ended.latestResult?.summary.status).toBe('completed')
+    expect(ended.latestResult?.summary.dateIso).toBe(new Date(start + 905000).toISOString())
+    expect(ended.latestResult?.plan).toBe(plan)
+    expect(ended.confirmEnd).toBe(false)
   })
 })

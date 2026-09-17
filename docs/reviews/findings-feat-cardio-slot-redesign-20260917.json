@@ -1,0 +1,129 @@
+{
+  "active_lenses": [
+    "Angle A",
+    "Angle B",
+    "Angle C",
+    "Angle D",
+    "Angle E",
+    "Cleanup",
+    "Altitude",
+    "Conventions",
+    "Plan Alignment",
+    "Test Quality",
+    "Design Quality",
+    "Dead Code",
+    "Gap sweep"
+  ],
+  "findings": [
+    {
+      "severity": "Important",
+      "file": "src/platform/storage.ts",
+      "line": "78",
+      "description": "Default parameter reads localStorage outside the adapter try/catch.",
+      "failure_scenario": "Browser policy throws on accessing window.localStorage; the app crashes before rendering instead of displaying a non-blocking save warning.",
+      "flagged_by": "Angle A",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Resolve the default storage inside the try block. Regression failed with SecurityError before fix."
+    },
+    {
+      "severity": "Important",
+      "file": "src/components/ReelStrip.tsx",
+      "line": "10",
+      "description": "A changed reel target can replay an old accepted request outside the spinning stage.",
+      "failure_scenario": "Adjust settings invalidates a ticket; target becomes the idle label and the requestId remains nonzero, so drums animate without a pull.",
+      "flagged_by": "Angle C",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Require the spinning stage before starting a WAAPI animation; clean up when the stage ends."
+    },
+    {
+      "severity": "Important",
+      "file": "src/components/TicketDialog.tsx",
+      "line": "21",
+      "description": "System reduced motion changes during a handoff do not cancel the mounted WAAPI animation.",
+      "failure_scenario": "Runner enables reduced motion while opening; CSS media rules cannot stop the JS animation.",
+      "flagged_by": "Plan Alignment",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Track the animation and settle the dialog immediately when reduced motion becomes active."
+    },
+    {
+      "severity": "Important",
+      "file": "src/domain/runtime.ts",
+      "line": "40",
+      "description": "Transition deduplication only tracks interval ID and is no longer consumed by the UI.",
+      "failure_scenario": "New runs reuse warmup-1; a previous identity can suppress the new cue, while repeated ticking should not reannounce cues.",
+      "flagged_by": "Angle B",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Include plan/run identity in transition identity and use it for the running live announcement. Test both duplicate and subsequent-run behavior."
+    },
+    {
+      "severity": "Important",
+      "file": "src/App.tsx",
+      "line": "79",
+      "description": "Close always focuses the lever, even when the ticket was opened from the outlet.",
+      "failure_scenario": "Keyboard runner opens View ticket and closes; focus returns to a different control.",
+      "flagged_by": "Design Quality",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Remember the opening control, preserve the inert outlet control while the dialog is open, and restore it on Close."
+    },
+    {
+      "severity": "Minor",
+      "file": "src/styles.css",
+      "line": "60",
+      "description": "Initial lever rotation left its reserved rail.",
+      "failure_scenario": "Timed portrait frame showed the knob clipped at the viewport edge during the pull.",
+      "flagged_by": "Design Quality",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Use forward pivot travel with perspective within the reserved rail; recapture timed evidence."
+    },
+    {
+      "severity": "Minor",
+      "file": "src/App.tsx",
+      "line": "126",
+      "description": "Installation guidance initially used a non-modal open dialog.",
+      "failure_scenario": "Background controls remain interactive behind installation guidance.",
+      "flagged_by": "Angle B",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Use showModal and restore cleanup, Escape and autofocus; Safari installation journey passes."
+    },
+    {
+      "severity": "Important",
+      "file": "src/platform/share.ts",
+      "line": "19",
+      "description": "Result generation waits for unrelated page fonts.",
+      "failure_scenario": "A pending font unused by the Canvas keeps document.fonts.ready unresolved, leaving the result stuck at Preparing image even when every required Canvas face is loaded.",
+      "flagged_by": "CI follow-up / Angle A",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Load only the four required Canvas font faces in parallel. A held HTTP font request reproduces the timeout before the fix; the actual PNG download passes afterwards in Chromium and WebKit."
+    },
+    {
+      "severity": "Important",
+      "file": "src/platform/share.ts",
+      "line": "21",
+      "description": "Required Canvas font loading has no rejection fallback or deadline.",
+      "failure_scenario": "A required font request rejects or remains pending, leaving the result at Preparing image forever and preventing native sharing or PNG download.",
+      "flagged_by": "CI follow-up / Angle A",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Settle rejected font requests and bound the wait to two seconds before rendering with available fonts. A browser-boundary regression reproduces the identical timeout before the fix and downloads a real PNG afterwards in Chromium and WebKit."
+    },
+    {
+      "severity": "Important",
+      "file": "docs/plans/cardio-slot-redesign-plan.md",
+      "line": "15",
+      "description": "Physical iPhone/Android and real treadmill acceptance cannot be established in browser emulation.",
+      "failure_scenario": "Visual-only cues may be insufficient during actual exercise even when automated checks pass.",
+      "flagged_by": "Plan Alignment",
+      "status": "escalate",
+      "verdict": "CONFIRMED",
+      "escalation_note": "The user explicitly accepted automated verification for this PR on 17 September 2026 and deferred physical checks. They are no longer a PR acceptance gate; no physical validation is claimed."
+    }
+  ]
+}

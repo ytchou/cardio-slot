@@ -32,6 +32,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: VITE_BASE_PATH=/cardio-slot/ pnpm build
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm test:e2e
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

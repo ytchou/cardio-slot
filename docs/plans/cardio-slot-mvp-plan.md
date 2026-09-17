@@ -1,3 +1,5 @@
+> Historical MVP plan. The approved `cardio-slot-redesign-plan.md` supersedes its timing, bookend, persistence, receipt, layout and motion semantics.
+
 # Cardio Slot MVP
 
 Build and deploy an installable, offline-capable treadmill workout PWA at

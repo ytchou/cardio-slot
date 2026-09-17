@@ -105,6 +105,17 @@
     },
     {
       "severity": "Important",
+      "file": "src/platform/share.ts",
+      "line": "21",
+      "description": "Required Canvas font loading has no rejection fallback or deadline.",
+      "failure_scenario": "A required font request rejects or remains pending, leaving the result at Preparing image forever and preventing native sharing or PNG download.",
+      "flagged_by": "CI follow-up / Angle A",
+      "status": "valid",
+      "verdict": "CONFIRMED",
+      "resolution": "Settle rejected font requests and bound the wait to two seconds before rendering with available fonts. A browser-boundary regression reproduces the identical timeout before the fix and downloads a real PNG afterwards in Chromium and WebKit."
+    },
+    {
+      "severity": "Important",
       "file": "docs/plans/cardio-slot-redesign-plan.md",
       "line": "15",
       "description": "Physical iPhone/Android and real treadmill acceptance cannot be established in browser emulation.",

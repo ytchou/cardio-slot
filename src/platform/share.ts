@@ -1,6 +1,8 @@
 import { FINISH_LABELS, FOCUS_LABELS, PATTERN_LABELS, THEMES } from '../domain/config'
 import type { ResultSummary, ThemeId, WorkoutPlan } from '../domain/types'
 
+const FONT_LOAD_TIMEOUT_MS = 2_000
+
 function formatClock(seconds: number) {
   const minutes = Math.floor(seconds / 60)
   const remainder = Math.floor(seconds % 60)
@@ -16,12 +18,20 @@ function drawLabel(context: CanvasRenderingContext2D, label: string, value: stri
 }
 
 export async function createResultImage(plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId) {
-  await Promise.all([
-    '700 45px "Barlow Condensed"',
-    '800 118px "Barlow Condensed"',
-    '600 48px "Barlow Condensed"',
-    '500 25px "IBM Plex Mono"',
-  ].map(font => document.fonts.load(font)))
+  let timeout: number | undefined
+  try {
+    await Promise.race([
+      Promise.allSettled([
+        '700 45px "Barlow Condensed"',
+        '800 118px "Barlow Condensed"',
+        '600 48px "Barlow Condensed"',
+        '500 25px "IBM Plex Mono"',
+      ].map(font => document.fonts.load(font))),
+      new Promise<void>(resolve => { timeout = window.setTimeout(resolve, FONT_LOAD_TIMEOUT_MS) }),
+    ])
+  } finally {
+    window.clearTimeout(timeout)
+  }
   const theme = THEMES[themeId]
   const canvas = document.createElement('canvas')
   canvas.width = 1080

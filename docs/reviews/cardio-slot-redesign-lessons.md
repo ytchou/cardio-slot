@@ -7,3 +7,4 @@
 - Symptom: localStorage policy crashed startup. Cause: default argument evaluation escaped the adapter's catch. Prevention: acquire fallible browser APIs inside guarded adapter bodies. Apply to both read and write entry points and test the getter, not only methods.
 
 - Symptom: sharing remained at Preparing image while another font was pending. Cause: the Canvas adapter waited for the entire page font set. Prevention: load only the faces the image uses, in parallel. Apply to Canvas preparation and test with a held unrelated font request; do not treat a green retry as a clean CI result.
+- Symptom: sharing could still remain at Preparing image after narrowing the font set. Cause: a required font promise could reject or remain pending without a deadline. Prevention: settle font errors and render with available fonts after a short bounded wait. Apply to optional rendering enhancements so they cannot disable the primary action.

@@ -1,7 +1,7 @@
 :root {
   font-family: 'Barlow Condensed', sans-serif; color: #18251d; background: #e8e2d5; font-synthesis: none;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
-  --ink: #18251d; --paper: #f9f5e9; --enamel: #eee4ce; --enamel-light: #fff8e8; --sidewall: #625b4c; --marquee: #ab2024; --marquee-light: #db3931; --knob: #be2028; --cabinet-ink: #231e17;
+  --ink: #18251d; --paper: #f9f5e9; --paper-rule: #b8b7ac; --effort-track: #d8d3c8; --enamel: #eee4ce; --enamel-light: #fff8e8; --sidewall: #625b4c; --marquee: #ab2024; --marquee-light: #db3931; --knob: #be2028; --cabinet-ink: #231e17;
   --chrome: linear-gradient(110deg, #535451, #f4f5ed 8%, #737b7b 14%, #f9faf3 20%, #777c79 24%, #dce0d9 52%, #515958 76%, #f8faf7 86%, #727771);
   --shadow-cabinet: 0 8px 0 var(--sidewall), 0 14px 20px #29231955, inset 0 0 0 2px #ffffffa6;
   --shadow-inset: inset 0 3px 7px #0009, 0 1px 0 #fff9;
@@ -88,22 +88,34 @@ input:checked + .rocker { background: #18502f; }
 ::backdrop { background: #161b17b3; }
 .ticket { background: var(--paper); color: var(--ink); padding: var(--space-4); border-radius: 5px; }
 .ticket-dialog .ticket { height: 100%; display: flex; flex-direction: column; transform-origin: top left; box-shadow: 0 15px 55px #0005; }
-.ticket-heading { text-align: center; padding: var(--space-2) var(--space-5) var(--space-3); border-bottom: 1px solid #b8b7ac; flex-shrink: 0; }
+.ticket-heading { text-align: center; padding: var(--space-2) var(--space-5) var(--space-3); border-bottom: 1px solid var(--paper-rule); flex-shrink: 0; }
 .ticket-brand { font: 11px 'IBM Plex Mono',monospace; letter-spacing: .12em; }
 .ticket-heading h2 { font-size: 28px; }
 .ticket-reels { font-size: 23px; font-weight: 600; }
 .ticket-duration { font: 16px 'IBM Plex Mono',monospace; margin-top: var(--space-1); }
 .ticket-body { overflow-y: auto; overscroll-behavior: contain; min-height: 0; flex: 1; padding-right: var(--space-2); font-size: 18px; scrollbar-gutter: stable; }
+.ticket-safety { margin-block: var(--space-3); padding: var(--space-3); border: 2px solid var(--max-bg); border-radius: var(--radius); background: var(--paper); }
+.ticket-safety strong { display: block; font-size: 21px; }
+.ticket-safety p { margin-top: var(--space-1); }
 .ticket-phase { padding-block: var(--space-3); border-bottom: 1px dashed #c5c1b5; }
-.ticket-phase h3 { display: flex; justify-content: space-between; gap: var(--space-3); font-size: 22px; }
+.ticket-phase h3 { font-size: 22px; }
+.ticket-phase-toggle { position: relative; width: 100%; min-height: 48px; padding: 0 var(--space-6) 0 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: inherit; text-align: left; }
+.ticket-phase-toggle:active:not(:disabled) { box-shadow: none; }
+.ticket-phase-toggle::after { content: '+'; position: absolute; right: var(--space-2); top: 0; font: 28px 'IBM Plex Mono',monospace; }
+.ticket-phase-toggle[aria-expanded='true']::after { content: '−'; }
+.ticket-phase-title { display: flex; justify-content: space-between; gap: var(--space-3); font-size: 22px; }
+.ticket-phase-meta { display: block; margin-top: var(--space-1); font: 13px 'IBM Plex Mono',monospace; text-transform: uppercase; }
+.ticket-effort-strip { display: flex; height: var(--space-2); margin-top: var(--space-2); overflow: hidden; border-radius: var(--radius); background: var(--effort-track); }
+.ticket-effort-strip i { display: block; min-width: 2px; }
+.effort-strip-easy { background: var(--easy-bg); }
+.effort-strip-strong { background: var(--strong-bg); }
+.effort-strip-max { background: var(--max-bg); }
 .ticket-phase ol { list-style: none; padding: 0; margin: var(--space-2) 0 0; }
 .ticket-phase li + li { margin-top: var(--space-3); }
 .ticket-interval { display: grid; grid-template-columns: 1fr 1fr 40px; gap: var(--space-2); font: 16px 'IBM Plex Mono',monospace; }
 .ticket-interval strong { text-transform: uppercase; font-weight: 500; }
 .ticket-phase li p { font-size: 18px; margin-top: var(--space-1); }
-.ticket-body > p { margin-block: var(--space-3); }
-.ticket-seed { font: 12px 'IBM Plex Mono',monospace; }
-.ticket-actions { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid #b8b7ac; flex-shrink: 0; }
+.ticket-actions { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--paper-rule); flex-shrink: 0; }
 .ticket-dialog[data-opening="true"] > .close-ticket { visibility: hidden; }
 .close-ticket { position: absolute; top: var(--space-2); right: var(--space-2); padding: 0; font-size: 34px; background: none; border: 0; box-shadow: none; }
 .run-screen { --run-bg: var(--easy-bg); --run-fg: var(--easy-fg); background: var(--run-bg); color: var(--run-fg); min-height: 100dvh; padding: max(var(--space-5), env(safe-area-inset-top)) max(var(--space-5), env(safe-area-inset-right)) max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-5), env(safe-area-inset-left)); display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-4); }
@@ -147,7 +159,9 @@ input:checked + .rocker { background: #18502f; }
 .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); padding-block: var(--space-5); }
 .result-grid span { display: block; font-size: 18px; text-transform: capitalize; }
 .result-grid strong { font: 20px 'IBM Plex Mono',monospace; }
-.result-actions { display: grid; gap: var(--space-2); }
+.result-preview { display: block; width: 100%; height: auto; margin-bottom: var(--space-4); border: 1px solid var(--paper-rule); }
+.result-actions, .result-share-actions { display: grid; gap: var(--space-2); }
+.result-actions { padding-top: var(--space-3); border-top: 1px solid var(--paper-rule); }
 .storage-warning { position: fixed; top: 0; left: 0; right: 0; z-index: var(--layer-warning); background: var(--paper); color: var(--ink); padding: var(--space-2); font-size: 18px; }
 @media (min-width: 700px) and (min-height: 541px) { .machine-page { padding-top: var(--space-6); } :root { --reel-height: 185px; --reel-row: 66px; } .control-deck { padding: var(--space-4); gap: var(--space-3); } .bookend-controls small { display: inline; } }
 @media (orientation: landscape) and (max-height: 540px) {

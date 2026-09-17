@@ -27,10 +27,30 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await expect(page.getByLabel(/Warm-up/)).not.toBeChecked()
   await expect(page.getByRole('button', { name: 'Mono', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await pullWorkout(page)
-  await expect(page.getByRole('dialog').locator('.ticket-duration')).toContainText('15:00')
+  const ticket = page.getByRole('dialog', { name: 'Your workout ticket' })
+  await expect(ticket.locator('.ticket-duration')).toContainText('15:00')
   const first = await saved(page)
   const ids = first.currentTicket.blocks.flatMap((block: { intervals: { id: string }[] }) => block.intervals.map(interval => interval.id))
   expect(await page.locator('[data-interval-id]').evaluateAll(elements => elements.map(element => element.getAttribute('data-interval-id')))).toEqual(ids)
+  const phaseButtons = ticket.locator('.ticket-phase-toggle')
+  await expect(phaseButtons).toHaveCount(first.currentTicket.blocks.length)
+  await expect(ticket.locator('.ticket-effort-strip')).toHaveCount(first.currentTicket.blocks.length)
+  await expect(ticket.locator('[role="region"]:not([hidden])')).toHaveCount(1)
+  await expect(phaseButtons.first()).toContainText(/\d+ intervals? ·/)
+  await expect(ticket.getByRole('button', { name: /Block 1 of/ })).toHaveAttribute('aria-expanded', 'true')
+  const nextPhase = phaseButtons.nth(1)
+  await nextPhase.click()
+  await expect(nextPhase).toHaveAttribute('aria-expanded', 'true')
+  await expect(ticket.getByRole('button', { name: /Block 1 of/ })).toHaveAttribute('aria-expanded', 'false')
+  await nextPhase.press('ArrowDown')
+  await expect(phaseButtons.nth(2)).toBeFocused()
+  expect(await ticket.locator('.ticket-body').evaluate(body => {
+    const callout = body.querySelector('.ticket-safety')
+    const firstPhase = body.querySelector('.ticket-phase')
+    return Boolean(callout && firstPhase && callout.compareDocumentPosition(firstPhase) & Node.DOCUMENT_POSITION_FOLLOWING)
+  })).toBe(true)
+  await expect(ticket.getByText(/Seed [A-F0-9]{8}/)).toHaveCount(0)
+  await expect(ticket.getByText(/main blocks · Incline/)).toHaveCount(0)
   await page.getByRole('button', { name: 'Close ticket' }).click()
   await page.getByRole('button', { name: 'Track', exact: true }).click()
   expect((await saved(page)).currentTicket.id).toBe(first.currentTicket.id)
@@ -57,12 +77,58 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   const result = (await saved(page)).latestResult.summary
   expect(result.elapsedSeconds).toBeGreaterThanOrEqual(65)
   expect(result.elapsedSeconds).toBeLessThan(72)
-  await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false }))
-  await expect(page.getByRole('button', { name: 'Share result' })).toBeEnabled()
+  await expect(page.getByRole('img', { name: 'Shareable workout result preview' })).toHaveJSProperty('naturalWidth', 1080)
   const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Share result' }).click()
+  await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
   await expect(page.getByRole('status')).toHaveText('PNG downloaded.')
+})
+
+test('Given a completed session, Pull another clears the old ticket and runs the full sequence to a different workout', async ({ page }) => {
+  await page.evaluate(() => {
+    Object.defineProperty(crypto, 'getRandomValues', { configurable: true, value: (values: Uint32Array) => { values[0] = 10; return values } })
+    const revoke = URL.revokeObjectURL.bind(URL)
+    Object.assign(window, { revokedResultUrls: [] as string[] })
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: (url: string) => {
+      ;(window as unknown as { revokedResultUrls: string[] }).revokedResultUrls.push(url)
+      revoke(url)
+    } })
+  })
+  await page.getByRole('button', { name: '15 min', exact: true }).click()
+  await pullWorkout(page)
+  await page.getByRole('button', { name: 'Start workout' }).click()
+  await page.clock.runFor(5_500)
+  await page.clock.fastForward(900_000)
+  await expect(page.getByRole('heading', { name: 'COMPLETED' })).toBeVisible()
+  const completed = (await saved(page)).latestResult.plan
+  const previewUrl = await page.getByRole('img', { name: 'Shareable workout result preview' }).getAttribute('src')
+
+  await page.getByRole('button', { name: 'Pull another' }).click()
+  await expect(page.getByRole('button', { name: 'View ticket' })).toHaveCount(0)
+  await expect.poll(() => page.evaluate(url => (window as unknown as { revokedResultUrls: string[] }).revokedResultUrls.includes(url ?? ''), previewUrl)).toBe(true)
+  await page.getByRole('button', { name: 'Pull workout' }).click()
+  await expect(page.getByRole('button', { name: 'Pull workout' })).toBeDisabled()
+  await expect(page.getByRole('status')).toHaveText('Reels rolling')
+  await page.clock.runFor(3_000)
+  await expect(page.getByRole('dialog', { name: 'Your workout ticket' })).toHaveCount(0)
+  await page.clock.runFor(650)
+  await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
+
+  const next = (await saved(page)).currentTicket
+  const visible = (plan: typeof completed) => ({
+    request: [plan.durationMinutes, plan.includeWarmup, plan.includeCooldown],
+    reels: [plan.focus, plan.pattern, plan.finish],
+    phases: plan.blocks.map((block: { kind: string; label: string; intervals: { durationSeconds: number; intensity: string; incline: number; cue: string }[] }) => ({
+      kind: block.kind,
+      label: block.label,
+      intervals: block.intervals.map(interval => [interval.durationSeconds, interval.intensity, interval.incline, interval.cue]),
+    })),
+  })
+  expect(visible(next)).not.toEqual(visible(completed))
+})
+
+test('Given result capabilities, image sharing stays direct and actions adapt to pointer type', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(() => {
     Object.defineProperty(navigator, 'canShare', { configurable: true, value: (data: ShareData) => data.files?.every(file => file.type === 'image/png') })
     Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: ShareData) => {
@@ -70,13 +136,63 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
       const file = data.files?.at(0)
       if (!file) throw new Error('Missing shared result')
       const image = await createImageBitmap(file)
-      Object.assign(window, { sharedResult: { width: image.width, height: image.height, name: file.name, activated } })
+      Object.assign(window, { sharedResult: { width: image.width, height: image.height, name: file.name, activated, keys: Object.keys(data) } })
       image.close()
     } })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { Object.assign(window, { copiedSummary: text }) } } })
   })
-  await page.getByRole('button', { name: 'Share result' }).click()
+  await pullWorkout(page)
+  await page.getByRole('button', { name: 'Start workout' }).click()
+  await page.clock.runFor(5_500)
+  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'Yes, end' }).click()
+
+  const preview = page.getByRole('img', { name: 'Shareable workout result preview' })
+  await expect(preview).toHaveJSProperty('naturalWidth', 1080)
+  await expect(preview).toHaveJSProperty('naturalHeight', 1350)
+  await expect(page.locator('.result-share-actions button')).toHaveText(['Share image', 'Save PNG', 'Copy summary'])
+  await page.getByRole('button', { name: 'Share image' }).click()
   await expect(page.getByRole('status')).toHaveText('Shared.')
-  expect(await page.evaluate(() => (window as unknown as { sharedResult: unknown }).sharedResult)).toEqual({ width: 1080, height: 1350, name: 'cardio-slot-ended.png', activated: true })
+  expect(await page.evaluate(() => (window as unknown as { sharedResult: unknown }).sharedResult)).toEqual({ width: 1080, height: 1350, name: 'cardio-slot-ended.png', activated: true, keys: ['files'] })
+  await page.getByRole('button', { name: 'Copy summary' }).click()
+  await expect(page.getByRole('status')).toHaveText('Summary copied.')
+  expect(await page.evaluate(() => (window as unknown as { copiedSummary: string }).copiedSummary)).toContain('Cardio Slot — Session ended')
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Clipboard denied') } } }))
+  await page.getByRole('button', { name: 'Copy summary' }).click()
+  await expect(page.getByRole('status')).toHaveText('Summary could not be copied.')
+  await expect(page.getByRole('button', { name: 'Pull another' })).toBeEnabled()
+
+  await page.addInitScript(() => {
+    const originalMatchMedia = window.matchMedia.bind(window)
+    Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => query === '(pointer: coarse)'
+      ? { matches: false, media: query, onchange: null, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, dispatchEvent: () => true }
+      : originalMatchMedia(query) })
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async () => {} })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } })
+  })
+  await page.reload()
+  await expect(page.locator('.result-share-actions button')).toHaveText(['Download PNG', 'Copy summary', 'Share image'])
+})
+
+test('Given sharing and clipboard are unsupported, the remaining image action stays usable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false })
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+  })
+  await pullWorkout(page)
+  await page.getByRole('button', { name: 'Start workout' }).click()
+  await page.clock.runFor(5_500)
+  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'Yes, end' }).click()
+
+  await expect(page.locator('.result-share-actions button')).toHaveText(['Save PNG'])
+  await expect(page.getByRole('button', { name: 'Save PNG' })).toHaveClass(/primary-button/)
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Save PNG' }).click()
+  expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
 })
 
 test('Given rotation at every stage, the request and scheduled session remain unchanged', async ({ page }) => {
@@ -95,6 +211,7 @@ test('Given rotation at every stage, the request and scheduled session remain un
   await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
   await page.setViewportSize({ width: 844, height: 320 })
   expect((await saved(page)).currentTicket.id).toBe(planId)
+  await page.getByRole('button', { name: /Cool-down/ }).click()
   await page.getByLabel('Workout instructions').evaluate(element => { element.scrollTop = element.scrollHeight })
   await expect(page.getByText('Walk it down and breathe')).toBeVisible()
   await page.getByRole('button', { name: 'Start workout' }).click()

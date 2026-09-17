@@ -85,16 +85,39 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   return new File([blob], `cardio-slot-${result.status}.png`, { type: 'image/png' })
 }
 
-export async function shareOrDownloadResult(file: File) {
-  if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-    await navigator.share({ files: [file], title: 'My Cardio Slot workout' })
-    return 'shared' as const
+export function canShareResultImage(file: File) {
+  try {
+    return typeof navigator.share === 'function' && Boolean(navigator.canShare?.({ files: [file] }))
+  } catch {
+    return false
   }
+}
+
+export function shareResultImage(file: File) {
+  if (!canShareResultImage(file)) return Promise.reject(new Error('File sharing is unavailable'))
+  return navigator.share({ files: [file] })
+}
+
+export function downloadResultImage(file: File) {
   const url = URL.createObjectURL(file)
   const link = document.createElement('a')
   link.href = url
   link.download = file.name
   link.click()
   URL.revokeObjectURL(url)
-  return 'downloaded' as const
+}
+
+export function formatResultSummary(plan: WorkoutPlan, result: ResultSummary) {
+  return [
+    `Cardio Slot — ${result.status === 'completed' ? 'Completed' : 'Session ended'}`,
+    `${FOCUS_LABELS[result.focus]} / ${PATTERN_LABELS[result.pattern]} / ${FINISH_LABELS[result.finish]}`,
+    `Time: ${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`,
+    `Main blocks planned: ${result.blockCount}`,
+    `Easy: ${formatClock(result.intensitySeconds.easy)} · Strong: ${formatClock(result.intensitySeconds.strong)} · Max: ${formatClock(result.intensitySeconds.max)}`,
+    `Top incline: ${result.maximumIncline}% · Original pick: ${plan.durationMinutes} min`,
+  ].join('\n')
+}
+
+export function copyResultSummary(plan: WorkoutPlan, result: ResultSummary) {
+  return navigator.clipboard.writeText(formatResultSummary(plan, result))
 }

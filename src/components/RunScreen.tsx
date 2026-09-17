@@ -47,7 +47,7 @@ export function RunScreen({ state, snapshot, wake, reduced, dispatch }: { state:
     <aside className="run-next"><div className="next-panel" aria-live="polite"><p>{soon ? `NEXT IN ${Math.ceil(snapshot.intervalRemainingSeconds)}…` : 'UP NEXT'}</p>
       <strong>{next?.intensity ?? 'FINISH'}</strong><span>{next ? `${formatDuration(next.durationSeconds)} · Incline ${next.incline}%` : 'Your full session, complete'}</span>
     </div><button className="end-button" onClick={() => dispatch({ type: 'request-end' })}>End workout</button>
-      <div className="run-options"><span className="wake-status">{wake === 'active' ? 'Screen awake' : wake === 'denied' ? 'Wake lock denied' : wake === 'unsupported' ? 'Keep screen on' : 'Requesting wake lock'}</span>
+      <div className="run-options">{(wake === 'denied' || wake === 'unsupported') && <span className="wake-status">Keep your screen on — automatic display lock is unavailable.</span>}
         <button aria-pressed={state.preferences.motion && !reduced} onClick={() => dispatch({ type: 'preferences', patch: { motion: !state.preferences.motion } })} disabled={reduced}>Motion {state.preferences.motion && !reduced ? 'on' : 'off'}</button>
       </div>
     </aside>

@@ -200,22 +200,25 @@ input:checked + .rocker { background: #18502f; }
   .ticket-reels { font-size: 21px; }
   .ticket-duration { margin-top: 0; }
   .ticket-actions { grid-template-columns: 1fr 1fr 1fr; padding-top: var(--space-2); }
-  .run-screen { height: 100dvh; min-height: 320px; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: var(--space-2) var(--space-5); padding: max(var(--space-3),env(safe-area-inset-top)) max(var(--space-5),env(safe-area-inset-right)) max(var(--space-2),env(safe-area-inset-bottom)) max(var(--space-5),env(safe-area-inset-left)); }
-  .run-progress { grid-column: 1/-1; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-5); }
+  .run-screen { height: 100dvh; min-height: 320px; grid-template-columns: minmax(0,1.75fr) minmax(240px,1fr); grid-template-rows: auto 1fr; gap: var(--space-2) var(--space-4); padding: max(var(--space-3),env(safe-area-inset-top)) max(var(--space-4),env(safe-area-inset-right)) max(var(--space-2),env(safe-area-inset-bottom)) max(var(--space-4),env(safe-area-inset-left)); }
+  .run-progress { grid-column: 1/-1; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4); }
   .run-progress > div:last-child { grid-column: 3; }
   .run-progress .progress-track { grid-column: 2; grid-row: 1; }
-  .run-progress strong { font-size: 30px; }
+  .run-progress strong { font-size: 28px; }
   .run-progress span { font-size: 16px; }
-  .run-cue { grid-column: 1; }
-  .phase-label { font-size: 22px; }
-  .run-intensity { font-size: 56px; margin-top: 0; }
-  .run-time { font-size: clamp(70px,23vh,104px); }
-  .run-incline { font-size: 26px; margin-top: var(--space-1); }
-  .run-instruction { font-size: 22px; margin-top: 0; }
+  .run-cue { grid-column: 1; padding-inline: var(--space-3); }
+  .phase-label { font-size: 20px; }
+  .run-intensity { font-size: clamp(58px,18vh,76px); margin-top: 0; }
+  .run-time { font-size: clamp(92px,30vh,126px); }
+  .run-incline { font-size: 24px; margin-top: var(--space-1); }
+  .run-instruction { font-size: 20px; margin-top: 0; }
   .run-next { align-self: center; gap: var(--space-2); }
   .next-panel { padding: var(--space-2); }
-  .next-panel strong { font-size: 38px; }
-  .next-panel span { font-size: 22px; }
-  .end-button { min-height: 48px; }
+  .next-panel p { font-size: 18px; }
+  .next-panel strong { font-size: 34px; }
+  .next-panel span { font-size: 19px; }
+  .end-button { min-height: 48px; font-size: 22px; }
+  .run-options { gap: var(--space-2); font-size: 16px; line-height: 1.15; }
+  .run-options button { margin-left: auto; padding-inline: var(--space-2); font-size: 16px; white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation: none !important; scroll-behavior: auto !important; } }

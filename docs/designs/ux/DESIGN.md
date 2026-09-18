@@ -18,7 +18,7 @@ Receipt uses a native modal dialog almost filling the dynamic viewport. Its head
 
 Result screens preview the exact 1080×1350 PNG. Coarse-pointer/mobile actions prioritize Share image, then Save PNG and Copy summary. Fine-pointer/desktop actions prioritize Download PNG and Copy summary, adding Share image only when file sharing is supported. Native sharing contains the image only; the readable text summary is copied separately. Unsupported actions are omitted.
 
-Running has stable semantic backgrounds until the exact interval boundary. Portrait emphasizes effort/countdown above next and End. Landscape puts elapsed/progress/remaining across the top, current phase left, and next/End/options right. Safe-area insets and dynamic viewport units apply. No orientation restriction in the PWA manifest. Rotation never alters workout or timer state.
+Running has stable semantic backgrounds until the exact interval boundary. Portrait emphasizes effort/countdown above next and End. Short landscape puts elapsed/progress/remaining across the top, gives the current phase and countdown roughly two-thirds of the content width, and keeps next/End/options in a compact secondary rail. Safe-area insets and dynamic viewport units apply. No orientation restriction in the PWA manifest. Rotation never alters workout or timer state.
 
 | State | Background | Foreground |
 | --- | --- | --- |

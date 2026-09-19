@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
+const RESULT_IMAGE_TIMEOUT_MS = 15_000
+
 async function pullWorkout(page: Page) {
   await page.getByRole('button', { name: /^(Pull workout|Pull again)$/ }).click()
   await page.clock.runFor(3650)
@@ -8,6 +10,11 @@ async function pullWorkout(page: Page) {
 }
 async function saved(page: Page) {
   return page.evaluate(() => JSON.parse(localStorage.getItem('cardio-slot-state-v2') ?? 'null'))
+}
+async function expectResultImage(page: Page) {
+  const preview = page.getByRole('img', { name: 'Shareable workout result preview' })
+  await expect(preview).toHaveJSProperty('naturalWidth', 1080, { timeout: RESULT_IMAGE_TIMEOUT_MS })
+  await expect(preview).toHaveJSProperty('naturalHeight', 1350)
 }
 
 test.beforeEach(async ({ page }) => {
@@ -73,7 +80,7 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   const result = (await saved(page)).latestResult.summary
   expect(result.elapsedSeconds).toBeGreaterThanOrEqual(65)
   expect(result.elapsedSeconds).toBeLessThan(72)
-  await expect(page.getByRole('img', { name: 'Shareable workout result preview' })).toHaveJSProperty('naturalWidth', 1080)
+  await expectResultImage(page)
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
@@ -140,12 +147,11 @@ test('Given result capabilities, image sharing stays direct and actions adapt to
   await pullWorkout(page)
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
+  await page.clock.resume()
   await page.getByRole('button', { name: 'End workout', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
 
-  const preview = page.getByRole('img', { name: 'Shareable workout result preview' })
-  await expect(preview).toHaveJSProperty('naturalWidth', 1080)
-  await expect(preview).toHaveJSProperty('naturalHeight', 1350)
+  await expectResultImage(page)
   const resultButtons = page.getByRole('article', { name: 'Workout result ticket' }).getByRole('button')
   await expect(resultButtons).toHaveText(['Share image', 'Save PNG', 'Copy summary', 'Pull another'])
   await page.getByRole('button', { name: 'Share image' }).click()
@@ -182,11 +188,12 @@ test('Given sharing and clipboard are unsupported, the remaining image action st
   await pullWorkout(page)
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
+  await page.clock.resume()
   await page.getByRole('button', { name: 'End workout', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
 
+  await expect(page.getByRole('button', { name: 'Save PNG' })).toBeEnabled({ timeout: RESULT_IMAGE_TIMEOUT_MS })
   await expect(page.getByRole('article', { name: 'Workout result ticket' }).getByRole('button')).toHaveText(['Save PNG', 'Pull another'])
-  await expect(page.getByRole('button', { name: 'Save PNG' })).toBeEnabled()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Save PNG' }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')

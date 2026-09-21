@@ -17,7 +17,7 @@ function drawLabel(context: CanvasRenderingContext2D, label: string, value: stri
   context.fillText(value, x, y + 52)
 }
 
-export async function createResultImage(plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId) {
+export async function createResultImage(_plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId) {
   let timeout: number | undefined
   try {
     await Promise.race([
@@ -50,35 +50,35 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   context.setLineDash([])
 
   context.fillStyle = theme.ink
-  context.font = '700 45px "Barlow Condensed"'
-  context.fillText('CARDIO SLOT', 135, 165)
   context.textAlign = 'right'
   context.font = '500 25px "IBM Plex Mono"'
-  context.fillText(new Date(result.dateIso).toLocaleDateString(undefined, { dateStyle: 'medium' }), 945, 160)
+  context.fillText(new Date(result.dateIso).toLocaleDateString(undefined, { dateStyle: 'medium' }), 945, 155)
   context.textAlign = 'left'
 
   context.fillStyle = theme.accent
   context.font = '800 118px "Barlow Condensed"'
-  context.fillText(result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED', 135, 315)
+  context.fillText(result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED', 135, 285)
   context.fillStyle = theme.ink
-  context.font = '600 58px "Barlow Condensed"'
-  context.fillText(`${TEMPLATE_LABELS[result.templateType]} WORKOUT`, 135, 400)
-
-  drawLabel(context, 'TIME', `${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`, 135, 510, theme.ink)
-  drawLabel(context, 'MAIN BLOCKS PLANNED', String(result.blockCount), 650, 510, theme.ink)
-  drawLabel(context, 'EASY', formatClock(result.intensitySeconds.easy), 135, 670, theme.muted)
-  drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 340, 670, theme.ink)
-  drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 545, 670, theme.accent)
-  drawLabel(context, 'WALK / EASY', formatClock(result.intensitySeconds.recovery), 750, 670, theme.muted)
-  drawLabel(context, 'TOP INCLINE', `${result.maximumIncline}%`, 135, 830, theme.ink)
-  drawLabel(context, 'ORIGINAL PICK', `${plan.durationMinutes} MIN`, 650, 830, theme.ink)
+  context.font = '500 25px "IBM Plex Mono"'
+  context.fillText('WORKOUT TYPE', 135, 360)
+  context.fillStyle = theme.accent
+  context.font = '700 72px "Barlow Condensed"'
+  context.fillText(TEMPLATE_LABELS[result.templateType].toUpperCase(), 135, 435)
 
   context.fillStyle = theme.ink
-  context.fillRect(135, 1000, 810, 5)
-  context.font = '500 31px "IBM Plex Mono"'
-  context.fillText('Personal pace. Real effort. Your run.', 135, 1075)
-  context.font = '500 24px "IBM Plex Mono"'
-  context.fillText('cardio-slot · visual treadmill workouts', 135, 1190)
+  context.fillRect(135, 485, 810, 4)
+
+  drawLabel(context, 'TIME', `${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`, 135, 570, theme.ink)
+  drawLabel(context, 'MAIN BLOCKS PLANNED', String(result.blockCount), 650, 570, theme.ink)
+
+  context.font = '500 29px "IBM Plex Mono"'
+  context.fillText('TIME BY EFFORT', 135, 735)
+  context.fillRect(135, 760, 810, 3)
+  drawLabel(context, 'EASY', formatClock(result.intensitySeconds.easy), 135, 825, theme.ink)
+  drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 340, 825, theme.ink)
+  drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 545, 825, theme.ink)
+  drawLabel(context, 'WALK / EASY', formatClock(result.intensitySeconds.recovery), 750, 825, theme.ink)
+  drawLabel(context, 'TOP INCLINE', `${result.maximumIncline}%`, 135, 1010, theme.ink)
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not render result image')), 'image/png')
@@ -115,7 +115,7 @@ export function formatResultSummary(plan: WorkoutPlan, result: ResultSummary) {
     `Time: ${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`,
     `Main blocks planned: ${result.blockCount}`,
     `Easy: ${formatClock(result.intensitySeconds.easy)} · Strong: ${formatClock(result.intensitySeconds.strong)} · Max: ${formatClock(result.intensitySeconds.max)} · Walk / Easy: ${formatClock(result.intensitySeconds.recovery)}`,
-    `Top incline: ${result.maximumIncline}% · Original pick: ${plan.durationMinutes} min`,
+    `Top incline: ${result.maximumIncline}%`,
   ].join('\n')
 }
 

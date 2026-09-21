@@ -22,6 +22,13 @@ async function expectResultImage(page: Page) {
   await expect(preview).toHaveJSProperty('naturalHeight', 1350)
 }
 
+async function expectResultScreen(page: Page) {
+  await expect(page.getByRole('main').locator('.result-copy h1')).toHaveText(/^(Strong finish|Run complete|Done and dusted|That’s a wrap|Workout locked in|You showed up|Session saved|You listened|That counts|Run recorded|Good call)\.$/)
+  await expect(page.getByRole('region', { name: 'Workout result' })).toBeVisible()
+  await expect(page.getByText('The whole ticket, start to finish.')).toHaveCount(0)
+  await expect(page.getByText(/^(CARDIO SLOT|COMPLETED|SESSION ENDED)$/)).toHaveCount(0)
+}
+
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-17T06:00:00Z') })
   await page.goto('./')
@@ -156,9 +163,9 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await expect(page.getByText(/^Block 1 of \d+$/)).toBeVisible()
   await page.clock.fastForward(65000)
   await page.clock.resume()
-  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
-  await expect(page.getByRole('heading', { name: 'SESSION ENDED' })).toBeVisible()
+  await expectResultScreen(page)
   const result = (await saved(page)).latestResult.summary
   expect(result.elapsedSeconds).toBeGreaterThanOrEqual(65)
   expect(result.elapsedSeconds).toBeLessThan(72)
@@ -184,7 +191,7 @@ test('Given a completed session, Pull another clears the old ticket and runs the
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
   await page.clock.fastForward(900_000)
-  await expect(page.getByRole('heading', { name: 'COMPLETED' })).toBeVisible()
+  await expectResultScreen(page)
   const completed = (await saved(page)).latestResult.plan
   const previewUrl = await page.getByRole('img', { name: 'Shareable workout result preview' }).getAttribute('src')
 
@@ -212,6 +219,28 @@ test('Given a completed session, Pull another clears the old ticket and runs the
   expect(visible(next)).not.toEqual(visible(completed))
 })
 
+test('Given a running workout, the complete map and final-five-second cue follow the scheduled timeline', async ({ page }) => {
+  await pullWorkout(page)
+  const plan = (await saved(page)).currentTicket
+  const intervalIds = plan.blocks.flatMap((block: { intervals: { id: string }[] }) => block.intervals.map(interval => interval.id))
+  const firstInterval = plan.blocks.at(0)?.intervals.at(0)
+  if (!firstInterval) throw new Error('Expected a generated interval')
+
+  await page.getByRole('button', { name: 'Start workout' }).click()
+  await page.clock.runFor(5_200)
+  const scheduled = (await saved(page)).activeRun.startTimestamp
+  const target = scheduled + (firstInterval.durationSeconds - 4) * 1_000
+  const now = await page.evaluate(() => Date.now())
+  await page.clock.fastForward(Math.max(0, target - now))
+  await page.clock.runFor(200)
+
+  expect(await page.locator('[data-workout-map] [data-interval-id]').evaluateAll(elements => elements.map(element => element.getAttribute('data-interval-id')))).toEqual(intervalIds)
+  const progress = page.getByRole('progressbar', { name: 'Workout progress' })
+  await expect(progress).toHaveAttribute('aria-valuemax', String(plan.effectiveDurationSeconds))
+  await expect(progress).toHaveAttribute('aria-valuetext', /remaining in this interval/)
+  await expect(page.getByText(/NEXT IN [34]…/)).toBeVisible()
+})
+
 test('Given result capabilities, image sharing stays direct and actions adapt to pointer type', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(() => {
@@ -225,17 +254,27 @@ test('Given result capabilities, image sharing stays direct and actions adapt to
       image.close()
     } })
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { Object.assign(window, { copiedSummary: text }) } } })
+    const fillText = CanvasRenderingContext2D.prototype.fillText
+    Object.assign(window, { resultImageText: [] as string[] })
+    CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number, maxWidth?: number) {
+      ;(window as unknown as { resultImageText: string[] }).resultImageText.push(text)
+      if (maxWidth === undefined) fillText.call(this, text, x, y)
+      else fillText.call(this, text, x, y, maxWidth)
+    }
   })
   await pullWorkout(page)
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
   await page.clock.resume()
-  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
 
   await expectResultImage(page)
-  const resultButtons = page.getByRole('article', { name: 'Workout result ticket' }).getByRole('button')
+  const resultButtons = page.getByRole('region', { name: 'Workout result' }).getByRole('button')
   await expect(resultButtons).toHaveText(['Share image', 'Save PNG', 'Copy summary', 'Pull another'])
+  const imageText = await page.evaluate(() => (window as unknown as { resultImageText: string[] }).resultImageText)
+  expect(imageText).toEqual(expect.arrayContaining(['WORKOUT TYPE', 'TIME BY EFFORT']))
+  expect(imageText).not.toEqual(expect.arrayContaining(['CARDIO SLOT', 'ORIGINAL PICK', 'Personal pace. Real effort. Your run.', 'cardio-slot · visual treadmill workouts']))
   await page.getByRole('button', { name: 'Share image' }).click()
   await expect(page.getByRole('status')).toHaveText('Shared.')
   expect(await page.evaluate(() => (window as unknown as { sharedResult: unknown }).sharedResult)).toEqual({ width: 1080, height: 1350, name: 'cardio-slot-ended.png', activated: true, keys: ['files'] })
@@ -257,7 +296,7 @@ test('Given result capabilities, image sharing stays direct and actions adapt to
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } })
   })
   await page.reload()
-  await expect(page.getByRole('article', { name: 'Workout result ticket' }).getByRole('button')).toHaveText(['Download PNG', 'Copy summary', 'Share image', 'Pull another'])
+  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Download PNG', 'Copy summary', 'Share image', 'Pull another'])
 })
 
 test('Given sharing and clipboard are unsupported, the remaining image action stays usable', async ({ page }) => {
@@ -271,11 +310,11 @@ test('Given sharing and clipboard are unsupported, the remaining image action st
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
   await page.clock.resume()
-  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
 
   await expect(page.getByRole('button', { name: 'Save PNG' })).toBeEnabled({ timeout: RESULT_IMAGE_TIMEOUT_MS })
-  await expect(page.getByRole('article', { name: 'Workout result ticket' }).getByRole('button')).toHaveText(['Save PNG', 'Pull another'])
+  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Save PNG', 'Pull another'])
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Save PNG' }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
@@ -310,16 +349,16 @@ test('Given rotation at every stage, the request and scheduled session remain un
   expect((await saved(page)).activeRun.startTimestamp).toBe(scheduled)
   await page.clock.runFor(4000)
   await page.setViewportSize({ width: 844, height: 390 })
-  await expect(page.getByRole('button', { name: 'End workout', exact: true })).toBeVisible()
-  await expect(page.getByText('UP NEXT')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'End session', exact: true })).toBeVisible()
+  await expect(page.getByText('NEXT', { exact: true })).toBeVisible()
   await page.clock.fastForward(180000)
   await page.reload()
   expect((await saved(page)).activeRun.startTimestamp).toBe(scheduled)
-  await page.getByRole('button', { name: 'End workout', exact: true }).click()
+  await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(page.getByRole('dialog', { name: 'Confirm end workout' })).toBeVisible()
   await page.clock.fastForward(900000)
-  await expect(page.getByRole('heading', { name: 'COMPLETED' })).toBeVisible()
+  await expectResultScreen(page)
   const result = (await saved(page)).latestResult
   expect(result.plan.id).toBe(planId)
   expect(result.summary.elapsedSeconds).toBe(900)

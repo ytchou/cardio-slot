@@ -2,6 +2,8 @@
 
 Approved 19 September 2026.
 
+Superseded on 21 September 2026 by [Active workout experience](active-workout-experience.md). The 65/35 short-landscape hierarchy remains, while the newer design replaces the progress bar, current cue, upcoming cue, and End treatment.
+
 ## Problem
 
 The active workout screen is the screen most likely to remain visible on a treadmill in landscape. At 844×390 and 844×320, the current 50/50 layout gives the live interval and the upcoming interval similar visual weight. When wake lock is unavailable, its guidance creates another competing block. The screen remains usable, but the live effort and countdown are not the obvious glance target.

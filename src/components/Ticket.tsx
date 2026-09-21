@@ -57,7 +57,7 @@ function EffortGuide() {
   </aside>
 }
 
-export function Ticket({ plan, result, children }: { plan: WorkoutPlan; result?: ResultSummary; children?: React.ReactNode }) {
+export function Ticket({ plan, children }: { plan: WorkoutPlan; result?: ResultSummary; children?: React.ReactNode }) {
   const accordionId = useId()
   const descriptor = TEMPLATE_LABELS[plan.templateType]
   const [openBlockId, setOpenBlockId] = useState(() => plan.blocks.find(block => block.kind === 'main')?.id ?? plan.blocks.at(0)?.id ?? null)
@@ -69,14 +69,7 @@ export function Ticket({ plan, result, children }: { plan: WorkoutPlan; result?:
     event.preventDefault()
     buttons.at(target)?.focus()
   }
-  return <article className="ticket" aria-label={result ? 'Workout result ticket' : 'Workout plan ticket'}>
-    {result ? <><header className="ticket-heading"><span className="ticket-brand">CARDIO SLOT</span><h2>{result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED'}</h2></header>
-      <div className="result-grid">
-        <div><span>Time</span><strong>{formatDuration(result.elapsedSeconds)} / {formatDuration(result.plannedSeconds)}</strong></div>
-        <div><span>Main blocks planned</span><strong>{result.blockCount}</strong></div>
-        {EFFORTS.map(effort => <div key={effort}><span>{EFFORT_LABELS[effort]}</span><strong>{formatDuration(result.intensitySeconds[effort])}</strong></div>)}
-        <div><span>Top incline</span><strong>{result.maximumIncline}%</strong></div>
-      </div></> : <>
+  return <article className="ticket" aria-label="Workout plan ticket">
       <TicketHeading plan={plan} />
       <div className="ticket-body" tabIndex={0} aria-label="Workout instructions">
         <aside className="ticket-safety"><strong>Before you start</strong><p>Pace by feel. Adjust freely. Stop if you feel pain, dizziness, or unwell.</p></aside>
@@ -104,7 +97,6 @@ export function Ticket({ plan, result, children }: { plan: WorkoutPlan; result?:
           </section>
         })}
       </div>
-    </>}
     {children}
   </article>
 }

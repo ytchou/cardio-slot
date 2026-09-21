@@ -5,9 +5,9 @@ import { useMachineSequence, useReducedMotion } from './app/useMachineSequence'
 import { MachineControls } from './components/MachineControls'
 import { ReelMachine } from './components/ReelMachine'
 import { RunScreen } from './components/RunScreen'
-import { Ticket } from './components/Ticket'
 import { TicketDialog } from './components/TicketDialog'
 import { TicketPrinter } from './components/TicketPrinter'
+import { getResultHeadline } from './domain/resultHeadline'
 import { getRunSnapshot } from './domain/runtime'
 import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
@@ -129,6 +129,7 @@ export default function App() {
   }
   const canShareImage = resultFile ? canShareResultImage(resultFile) : false
   const canCopySummary = Boolean(navigator.clipboard?.writeText)
+  const resultHeadline = state.latestResult ? getResultHeadline(state.latestResult.plan, state.latestResult.summary) : ''
   const machineVisible = !active && state.flow !== 'result'
   return <div className={`app-shell ${active ? 'session-shell' : ''}`}>
     {persistenceFailed && <p className="storage-warning" role="status">Saving is unavailable. Keep this tab open to retain this session.</p>}
@@ -146,8 +147,8 @@ export default function App() {
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
-    {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{state.latestResult.summary.status === 'completed' ? 'Nice work.' : 'You called it.'}</h1><p>{state.latestResult.summary.status === 'completed' ? 'The whole ticket, start to finish.' : 'Listening to your body always counts.'}</p></div>
-      <Ticket plan={state.latestResult.plan} result={state.latestResult.summary}>
+    {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{resultHeadline}</h1></div>
+      <section className="result-output" aria-label="Workout result">
         {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt="Shareable workout result preview" />}
         <div className="result-actions"><div className="result-share-actions">
           {!resultFile && !resultImageFailed && <button className="primary-button" disabled>Preparing image…</button>}
@@ -164,7 +165,7 @@ export default function App() {
           {!resultFile && resultImageFailed && canCopySummary && <button className="primary-button" onClick={copySummary}>Copy summary</button>}
         </div><button onClick={pullAnother}>Pull another</button></div>
         {shareMessage && <p role="status">{shareMessage}</p>}
-      </Ticket>
+      </section>
     </main>}
     {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><h2 id="install-title">Add to Home Screen</h2><p>In Safari, tap Share, then choose “Add to Home Screen.” Your workouts launch full screen and stay available offline.</p><button autoFocus onClick={installPrompt.closeIosHelp}>Got it</button></dialog>}
   </div>

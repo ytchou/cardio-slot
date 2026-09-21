@@ -16,7 +16,7 @@ export function TicketPrinter({ plan, flow, paperRef, reopen }: { plan: WorkoutP
     observer.observe(paper)
     return () => observer.disconnect()
   }, [paperRef])
-  return <div className="printer"><span className="printer-label">TICKET OUT</span><div className="printer-slit" />
+  return <div className="printer"><div className="printer-slit" />
     <div ref={feedRef} className={`paper-feed ${flow === 'printing' ? 'is-feeding' : ''} ${flow === 'opening' ? 'is-handoff' : ''}`} aria-hidden="true">
       <div className="paper-travel"><div className="printer-paper" ref={paperRef}><div className="ticket">{plan && <TicketHeading plan={plan} />}</div></div></div>
     </div><div className="printer-lip" />

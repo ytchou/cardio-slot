@@ -2,10 +2,11 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { appReducer, createInitialState, machineBusy, sessionActive, toPersistedState } from './app/state'
 import { useMachineSequence, useReducedMotion } from './app/useMachineSequence'
-import { MachineControls } from './components/MachineControls'
+import { MachineControls, MachineFinish } from './components/MachineControls'
 import { ReelMachine } from './components/ReelMachine'
 import { RunScreen } from './components/RunScreen'
 import { TicketDialog } from './components/TicketDialog'
+import { TicketHandoff } from './components/TicketHandoff'
 import { TicketPrinter } from './components/TicketPrinter'
 import { getResultHeadline } from './domain/resultHeadline'
 import { getRunSnapshot } from './domain/runtime'
@@ -113,17 +114,21 @@ export default function App() {
   return <div className={`app-shell ${active ? 'session-shell' : ''}`}>
     {persistenceFailed && <p className="storage-warning" role="status">Saving is unavailable. Keep this tab open to retain this session.</p>}
     {machineVisible && <main className="machine-page">
-      <p className="intro">Pull a workout. Run by feel.</p>
-      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} plan={state.currentTicket} requestId={state.requestId} reduced={reduced} pull={pull}>
+      <div className="machine-toolbar">
+        <p className="intro">Pull your workout. Run your way.</p>
+        <MachineFinish preferences={state.preferences} disabled={busy} dispatch={dispatch} />
+      </div>
+      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} attention={state.flow === 'configure' && !state.currentTicket} plan={state.currentTicket} requestId={state.requestId} reduced={reduced} pull={pull}>
         <MachineControls preferences={state.preferences} disabled={busy} dispatch={dispatch} deckRef={deckRef} />
         <TicketPrinter flow={state.flow} plan={state.currentTicket} paperRef={paperRef} reopen={button => { ticketReturnFocus.current = button; dispatch({ type: 'open-ticket' }) }} />
       </ReelMachine>
       {error && <p role="alert">{error}</p>}
       {installPrompt.canInstall && <footer className="machine-footer"><button onClick={() => void installPrompt.install()}>Install app</button></footer>}
     </main>}
-    {(state.flow === 'opening' || state.flow === 'ticket') && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket} opening={state.flow === 'opening'} reduced={reduced} paperRef={paperRef}
-      onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })}
+    {state.flow === 'opening' && state.currentTicket && <TicketHandoff key={state.requestId} plan={state.currentTicket} reduced={reduced} paperRef={paperRef}
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
+    {state.flow === 'ticket' && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket}
+      onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })} />}
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
     {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{resultHeadline}</h1></div>

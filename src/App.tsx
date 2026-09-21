@@ -27,7 +27,6 @@ export default function App() {
   const [error, setError] = useState('')
   const [persistenceFailed, setPersistenceFailed] = useState(false)
   const [updateReady, setUpdateReady] = useState(false)
-  const [offlineReady, setOfflineReady] = useState(false)
   const pullGuard = useRef(false)
   const previousCompletedPlan = useRef(state.latestResult?.plan ?? null)
   const requestId = useRef(0)
@@ -43,12 +42,11 @@ export default function App() {
     return () => dialog.close()
   }, [installPrompt.showIosHelp])
   const reduced = useReducedMotion()
-  const suppressMotion = reduced || !state.preferences.motion
   const busy = machineBusy(state.flow)
   const active = sessionActive(state.flow)
   const wakeLockStatus = useWakeLock(active)
-  useMachineSequence(state, dispatch, suppressMotion)
-  const { updateServiceWorker } = useRegisterSW({ onNeedRefresh: () => setUpdateReady(true), onOfflineReady: () => setOfflineReady(true) })
+  useMachineSequence(state, dispatch, reduced)
+  const { updateServiceWorker } = useRegisterSW({ onNeedRefresh: () => setUpdateReady(true) })
   const runSnapshot = useMemo(() => state.activeRun ? getRunSnapshot(state.activeRun.plan, state.activeRun.startTimestamp, state.now) : null, [state.activeRun, state.now])
   const durable = useMemo(() => toPersistedState(state), [state.preferences, state.currentTicket, state.activeRun, state.latestResult])
   useEffect(() => { setPersistenceFailed(!savePersistedState(durable)) }, [durable])
@@ -116,7 +114,6 @@ export default function App() {
     dispatch({ type: 'new-workout' })
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
-  const adjust = () => { close(); window.requestAnimationFrame(() => deckRef.current?.focus()) }
   const shareResult = () => {
     if (!resultFile) return
     void shareResultImage(resultFile).then(() => setShareMessage('Shared.')).catch(failure => {
@@ -137,21 +134,15 @@ export default function App() {
     {persistenceFailed && <p className="storage-warning" role="status">Saving is unavailable. Keep this tab open to retain this session.</p>}
     {machineVisible && <main className="machine-page">
       <p className="intro">Pull a workout. Run by feel.</p>
-      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} plan={state.currentTicket} requestId={state.requestId} reduced={suppressMotion} pull={pull}>
+      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} plan={state.currentTicket} requestId={state.requestId} reduced={reduced} pull={pull}>
         <MachineControls preferences={state.preferences} disabled={busy} dispatch={dispatch} deckRef={deckRef} />
         <TicketPrinter flow={state.flow} plan={state.currentTicket} paperRef={paperRef} reopen={button => { ticketReturnFocus.current = button; dispatch({ type: 'open-ticket' }) }} />
       </ReelMachine>
-      <p className="duration-note">Total includes enabled warm-up, cooldown, and recoveries.</p>
       {error && <p role="alert">{error}</p>}
-      <footer className="machine-footer">
-        {installPrompt.canInstall && <button onClick={() => void installPrompt.install()}>Install app</button>}
-        <details><summary>Help</summary><p>Choose your own speeds. Adjust freely. Stop if you feel pain, dizziness, or unwell.</p><p>Easy: relaxed. Strong: controlled effort. Max: short, powerful effort. Use the treadmill controls to change your incline.</p>
-          <button aria-pressed={state.preferences.motion && !reduced} disabled={busy || reduced} onClick={() => dispatch({ type: 'preferences', patch: { motion: !state.preferences.motion } })}>Motion {state.preferences.motion && !reduced ? 'on' : 'off'}</button>
-        </details><span className="offline-badge">{offlineReady ? 'Ready offline' : 'Saving offline'}</span>
-      </footer>
+      {installPrompt.canInstall && <footer className="machine-footer"><button onClick={() => void installPrompt.install()}>Install app</button></footer>}
     </main>}
-    {(state.flow === 'opening' || state.flow === 'ticket') && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket} opening={state.flow === 'opening'} reduced={suppressMotion} paperRef={paperRef}
-      onClose={close} onAdjust={adjust} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })}
+    {(state.flow === 'opening' || state.flow === 'ticket') && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket} opening={state.flow === 'opening'} reduced={reduced} paperRef={paperRef}
+      onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })}
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}

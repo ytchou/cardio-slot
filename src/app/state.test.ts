@@ -8,7 +8,14 @@ function ticket() {
 }
 
 describe('Given a runner configures and resumes a session', () => {
-  it('invalidates a ticket on timing edits permanently while finish edits preserve it', () => {
+  it('starts clean after a reload instead of restoring an unstarted ticket', () => {
+    const beforeReload = ticket()
+    const restored = createInitialState(toPersistedState(beforeReload), start)
+    expect(restored.flow).toBe('configure')
+    expect(restored.currentTicket).toBeNull()
+    expect(restored.preferences).toEqual(beforeReload.preferences)
+  })
+  it('invalidates a ticket on timing edits permanently while cabinet skin edits preserve it', () => {
     const initial = ticket()
     const skin = appReducer(initial, { type: 'preferences', patch: { theme: 'neon' } })
     expect(skin.currentTicket).toBe(plan)

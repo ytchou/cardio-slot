@@ -1,6 +1,6 @@
 import { summarizeResult } from '../domain/summary'
 import type { Preferences, RunRecord, WorkoutPlan } from '../domain/types'
-import { DEFAULT_PREFERENCES, type PersistedStateV2, type SavedResult } from '../platform/storage'
+import { DEFAULT_PREFERENCES, type PersistedStateV3, type SavedResult } from '../platform/storage'
 
 export type AppFlow = 'configure' | 'spinning' | 'printing' | 'opening' | 'ticket' | 'countdown' | 'running' | 'result'
 export interface AppState {
@@ -23,11 +23,11 @@ export type AppAction =
 export function machineBusy(flow: AppFlow) { return flow === 'spinning' || flow === 'printing' || flow === 'opening' }
 export function sessionActive(flow: AppFlow) { return flow === 'countdown' || flow === 'running' }
 
-export function createInitialState(saved: PersistedStateV2 | null, now = Date.now()): AppState {
+export function createInitialState(saved: PersistedStateV3 | null, now = Date.now()): AppState {
   const activeRun = saved?.activeRun ?? null
   const state: AppState = {
-    flow: activeRun ? (now < activeRun.startTimestamp ? 'countdown' : 'running') : saved?.currentTicket ? 'configure' : saved?.latestResult ? 'result' : 'configure',
-    preferences: saved?.preferences ?? { ...DEFAULT_PREFERENCES }, currentTicket: saved?.currentTicket ?? null,
+    flow: activeRun ? (now < activeRun.startTimestamp ? 'countdown' : 'running') : saved?.latestResult ? 'result' : 'configure',
+    preferences: saved?.preferences ?? { ...DEFAULT_PREFERENCES }, currentTicket: null,
     activeRun, latestResult: saved?.latestResult ?? null, requestId: 0, now, confirmEnd: false,
   }
   return activeRun ? appReducer(state, { type: 'tick', timestamp: now }) : state
@@ -44,7 +44,7 @@ function finishRun(state: AppState, now: number): AppState {
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'preferences': {
-      if (machineBusy(state.flow) || (sessionActive(state.flow) && Object.keys(action.patch).some(key => key !== 'motion'))) return state
+      if (machineBusy(state.flow) || sessionActive(state.flow)) return state
       const preferences = { ...state.preferences, ...action.patch }
       const changed = preferences.durationMinutes !== state.preferences.durationMinutes || preferences.includeWarmup !== state.preferences.includeWarmup || preferences.includeCooldown !== state.preferences.includeCooldown
       return { ...state, preferences, currentTicket: changed ? null : state.currentTicket, flow: changed ? 'configure' : state.flow }
@@ -75,6 +75,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
   }
 }
 
-export function toPersistedState(state: AppState): PersistedStateV2 {
-  return { version: 2, preferences: state.preferences, currentTicket: state.currentTicket, activeRun: state.activeRun, latestResult: state.latestResult }
+export function toPersistedState(state: AppState): PersistedStateV3 {
+  return { version: 3, preferences: state.preferences, currentTicket: state.currentTicket, activeRun: state.activeRun, latestResult: state.latestResult }
 }

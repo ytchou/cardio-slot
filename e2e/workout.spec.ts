@@ -1,6 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import { TEMPLATE_LABELS } from '../src/domain/config'
 
 const RESULT_IMAGE_TIMEOUT_MS = 15_000
+
+function intervalTime(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+}
 
 async function pullWorkout(page: Page) {
   await page.getByRole('button', { name: /^(Pull workout|Pull again)$/ }).click()
@@ -9,7 +14,7 @@ async function pullWorkout(page: Page) {
   await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
 }
 async function saved(page: Page) {
-  return page.evaluate(() => JSON.parse(localStorage.getItem('cardio-slot-state-v2') ?? 'null'))
+  return page.evaluate(() => JSON.parse(localStorage.getItem('cardio-slot-state-v3') ?? 'null'))
 }
 async function expectResultImage(page: Page) {
   const preview = page.getByRole('img', { name: 'Shareable workout result preview' })
@@ -20,6 +25,79 @@ async function expectResultImage(page: Page) {
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-17T06:00:00Z') })
   await page.goto('./')
+})
+
+test('Given an unstarted ticket, refreshing returns to a clean machine', async ({ page }) => {
+  await pullWorkout(page)
+  await page.getByRole('button', { name: 'Close ticket' }).click()
+  await expect(page.getByRole('button', { name: 'View ticket' })).toBeVisible()
+
+  await page.reload()
+
+  await expect(page.getByRole('button', { name: 'View ticket' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Pull workout' })).toBeVisible()
+  await expect.poll(async () => (await saved(page)).currentTicket).toBeNull()
+})
+
+test('Given a 30-minute ticket, every main block uses the selected card layout without changing the workout', async ({ page }) => {
+  await pullWorkout(page)
+  const ticket = page.getByRole('dialog', { name: 'Your workout ticket' })
+  const current = await saved(page)
+  const ids = current.currentTicket.blocks.flatMap((block: { intervals: { id: string }[] }) => block.intervals.map(interval => interval.id))
+  const allMainBlocks = current.currentTicket.blocks.filter((block: { kind: string }) => block.kind === 'main') as {
+    intervals: { id: string; durationSeconds: number; intensity: string; incline: number }[]
+  }[]
+  const descriptor = TEMPLATE_LABELS[current.currentTicket.templateType as keyof typeof TEMPLATE_LABELS]
+  await expect(page.locator('.reel-window')).toHaveCount(3)
+  await expect(page.locator('.cabinet [role="status"]')).toHaveText(`${descriptor} workout selected`)
+  const mainBlocks = allMainBlocks.slice(0, 3)
+  const expectExactIntervals = async (blockIndex: number) => {
+    const block = mainBlocks.at(blockIndex)
+    if (!block) throw new Error(`Missing main block ${blockIndex + 1}`)
+    for (const interval of block.intervals) {
+      const rendered = ticket.locator(`[data-interval-id="${interval.id}"]`)
+      await expect(rendered).toContainText(intervalTime(interval.durationSeconds))
+      await expect(rendered).toContainText(interval.intensity === 'recovery' ? /Walk \/ Easy/i : new RegExp(interval.intensity, 'i'))
+      await expect(rendered).toContainText(`${interval.incline}%`)
+    }
+  }
+
+  await expect(ticket.getByRole('heading', { name: 'Workout of the day' })).toBeVisible()
+  await expect(ticket.getByRole('heading', { name: 'Your workout' })).toHaveCount(0)
+  await expect(ticket.getByText(descriptor, { exact: true })).toHaveCount(allMainBlocks.length)
+  const effortGuide = ticket.getByLabel('Effort guide')
+  const effortTerms = effortGuide.getByRole('term')
+  const easyGuide = effortTerms.nth(0)
+  const strongGuide = effortTerms.nth(1)
+  const maxGuide = effortTerms.nth(2)
+  const recoveryGuide = effortTerms.nth(3)
+  await expect(effortGuide.getByText('Effort guide', { exact: true })).toBeVisible()
+  await expect(effortGuide.getByRole('button')).toHaveCount(0)
+  await expect(effortTerms).toHaveCount(4)
+  await easyGuide.hover()
+  await expect(effortGuide.getByRole('tooltip', { name: 'You can speak in full sentences.' })).toBeVisible()
+  await strongGuide.focus()
+  await expect(effortGuide.getByRole('tooltip', { name: 'You can speak in short phrases.' })).toBeVisible()
+  await maxGuide.focus()
+  await expect(effortGuide.getByRole('tooltip', { name: 'You can only manage a few words.' })).toBeVisible()
+  await recoveryGuide.focus()
+  await expect(effortGuide.getByRole('tooltip', { name: 'Walk or jog very easily until ready.' })).toBeVisible()
+  expect((await saved(page)).currentTicket.id).toBe(current.currentTicket.id)
+  await expect(ticket.locator('.ticket-interval-cards')).toHaveCount(allMainBlocks.length)
+  await expect(ticket.getByText(/Option [ABC]/)).toHaveCount(0)
+  await expectExactIntervals(0)
+  await ticket.getByRole('button', { name: /Block 2 of/ }).click()
+  await expect(ticket.locator('[role="region"]:not([hidden])').getByLabel('Intervals')).toBeVisible()
+  await expectExactIntervals(1)
+  await ticket.getByRole('button', { name: /Block 3 of/ }).click()
+  await expect(ticket.locator('[role="region"]:not([hidden])').getByLabel('Intervals')).toBeVisible()
+  await expectExactIntervals(2)
+  await expect(ticket.getByText(/Next: Block/)).toHaveCount(0)
+  await expect(ticket.locator('[data-phase-kind="recovery"]').first()).toContainText('Walk or jog very easily until ready.')
+  await expect(ticket.locator('[data-phase-kind="recovery"] button')).toHaveCount(0)
+  await expect(ticket.locator('[data-phase-kind="warmup"] button, [data-phase-kind="cooldown"] button')).toHaveCount(0)
+  await expect(ticket.locator('.ticket-interval-cue')).toHaveCount(0)
+  expect(await ticket.locator('[data-interval-id]').evaluateAll(elements => elements.map(element => element.getAttribute('data-interval-id')))).toEqual(ids)
 })
 
 test('Given settings and a ticket, edits invalidate the preview and every instruction matches the run', async ({ page }) => {
@@ -39,9 +117,10 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   const first = await saved(page)
   const ids = first.currentTicket.blocks.flatMap((block: { intervals: { id: string }[] }) => block.intervals.map(interval => interval.id))
   expect(await page.locator('[data-interval-id]').evaluateAll(elements => elements.map(element => element.getAttribute('data-interval-id')))).toEqual(ids)
-  const phaseButtons = ticket.locator('button[aria-controls]')
-  await expect(phaseButtons).toHaveCount(first.currentTicket.blocks.length)
-  await expect(ticket.getByLabel(/^Effort mix:/)).toHaveCount(first.currentTicket.blocks.length)
+  const phaseButtons = ticket.getByRole('button', { name: /Block \d+ of/ })
+  const mainBlocks = first.currentTicket.blocks.filter((block: { kind: string }) => block.kind === 'main')
+  await expect(phaseButtons).toHaveCount(mainBlocks.length)
+  await expect(ticket.getByLabel(/^Effort mix:/)).toHaveCount(mainBlocks.length)
   await expect(ticket.locator('[role="region"]:not([hidden])')).toHaveCount(1)
   await expect(phaseButtons.first()).toContainText(/\d+ intervals? ·/)
   await expect(ticket.getByText('Before you start')).toBeVisible()
@@ -50,8 +129,11 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await nextPhase.click()
   await expect(nextPhase).toHaveAttribute('aria-expanded', 'true')
   await expect(ticket.getByRole('button', { name: /Block 1 of/ })).toHaveAttribute('aria-expanded', 'false')
-  await nextPhase.press('ArrowDown')
-  await expect(phaseButtons.nth(2)).toBeFocused()
+  await nextPhase.click()
+  await expect(nextPhase).toHaveAttribute('aria-expanded', 'false')
+  await expect(ticket.locator('[role="region"]:not([hidden])')).toHaveCount(0)
+  await phaseButtons.first().press('ArrowDown')
+  await expect(nextPhase).toBeFocused()
   await expect(ticket.getByText(/Seed [A-F0-9]{8}/)).toHaveCount(0)
   await expect(ticket.getByText(/main blocks · Incline/)).toHaveCount(0)
   await page.getByRole('button', { name: 'Close ticket' }).click()
@@ -61,8 +143,8 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await page.getByRole('button', { name: 'Close ticket' }).click()
   await expect(page.getByRole('button', { name: 'View ticket' })).toBeFocused()
   await page.getByRole('button', { name: 'View ticket' }).click()
-  await page.getByRole('button', { name: 'Adjust settings' }).click()
-  await expect(page.getByLabel('Workout settings')).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Adjust settings' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Close ticket' }).click()
   await page.getByLabel(/Warm-up/).check()
   await expect(page.getByRole('button', { name: 'View ticket' })).toHaveCount(0)
   await page.getByLabel(/Warm-up/).uncheck()
@@ -120,7 +202,7 @@ test('Given a completed session, Pull another clears the old ticket and runs the
   const next = (await saved(page)).currentTicket
   const visible = (plan: typeof completed) => ({
     request: [plan.durationMinutes, plan.includeWarmup, plan.includeCooldown],
-    reels: [plan.focus, plan.pattern, plan.finish],
+    templateType: plan.templateType,
     phases: plan.blocks.map((block: { kind: string; label: string; intervals: { durationSeconds: number; intensity: string; incline: number; cue: string }[] }) => ({
       kind: block.kind,
       label: block.label,
@@ -215,9 +297,10 @@ test('Given rotation at every stage, the request and scheduled session remain un
   await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
   await page.setViewportSize({ width: 844, height: 320 })
   expect((await saved(page)).currentTicket.id).toBe(planId)
-  await page.getByRole('button', { name: /Cool-down/ }).click()
   await page.getByLabel('Workout instructions').evaluate(element => { element.scrollTop = element.scrollHeight })
-  await expect(page.getByText('Walk it down and breathe')).toBeVisible()
+  await expect(page.locator('[data-phase-kind="cooldown"]')).toContainText('Cool-down')
+  await expect(page.locator('[data-phase-kind="cooldown"] button')).toHaveCount(0)
+  await expect(page.getByText('Walk it down and breathe')).toHaveCount(0)
   await page.getByRole('button', { name: 'Start workout' }).click()
   const scheduled = (await saved(page)).activeRun.startTimestamp
   await page.clock.runFor(1500)
@@ -263,19 +346,38 @@ test('Given reduced motion and keyboard input, the lever produces a usable modal
   await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
 })
 
+test('Given an old saved Motion off preference, pulling still plays the machine sequence without a motion control', async ({ page }) => {
+  await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('cardio-slot-state-v3') ?? 'null')
+    localStorage.removeItem('cardio-slot-state-v3')
+    localStorage.setItem('cardio-slot-state-v2', JSON.stringify({
+      ...saved, version: 2,
+      preferences: { ...saved.preferences, motion: false },
+    }))
+  })
+  await page.reload()
+
+  expect((await saved(page)).preferences).not.toHaveProperty('motion')
+  await expect(page.getByRole('button', { name: /Motion (?:on|off)/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Pull workout' }).click()
+  await page.clock.runFor(50)
+  await expect(page.getByRole('dialog', { name: 'Your workout ticket' })).toHaveCount(0)
+  await expect(page.getByRole('status')).toHaveText('Reels rolling')
+})
+
 test('Given iPhone Safari, install guidance explains Add to Home Screen', async ({ page, browserName }) => {
   test.skip(browserName !== 'webkit', 'iPhone-specific guidance')
   await page.getByRole('button', { name: 'Install app' }).click()
   await expect(page.getByRole('heading', { name: 'Add to Home Screen' })).toBeVisible()
 })
 
-test('Given a running session, timer ticks and motion suppression do not rewrite or restart it', async ({ page }) => {
+test('Given a running session, timer ticks do not rewrite or restart it', async ({ page }) => {
   await page.evaluate(() => {
     const write = Storage.prototype.setItem
     let durableWrites = 0
     Object.defineProperty(window, 'durableWrites', { get: () => durableWrites })
     Storage.prototype.setItem = function (key, value) {
-      if (key === 'cardio-slot-state-v2') durableWrites++
+      if (key === 'cardio-slot-state-v3') durableWrites++
       return write.call(this, key, value)
     }
   })
@@ -287,11 +389,8 @@ test('Given a running session, timer ticks and motion suppression do not rewrite
   await page.clock.runFor(2000)
   expect(await page.evaluate(() => (window as unknown as { durableWrites: number }).durableWrites)).toBe(writes)
   expect((await saved(page)).activeRun).toEqual(before.activeRun)
-  await page.getByRole('button', { name: 'Motion on' }).click()
-  await expect(page.getByRole('button', { name: 'Motion off' })).toHaveAttribute('aria-pressed', 'false')
   await page.clock.fastForward(10000)
   const after = await saved(page)
   expect(after.activeRun).toEqual(before.activeRun)
-  expect(after.preferences.motion).toBe(false)
   await expect(page.locator('.run-progress')).toContainText('0:12')
 })

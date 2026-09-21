@@ -1,4 +1,4 @@
-import { FINISH_LABELS, FOCUS_LABELS, PATTERN_LABELS, THEMES } from '../domain/config'
+import { TEMPLATE_LABELS, THEMES } from '../domain/config'
 import type { ResultSummary, ThemeId, WorkoutPlan } from '../domain/types'
 
 const FONT_LOAD_TIMEOUT_MS = 2_000
@@ -62,13 +62,14 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   context.fillText(result.status === 'completed' ? 'COMPLETED' : 'SESSION ENDED', 135, 315)
   context.fillStyle = theme.ink
   context.font = '600 58px "Barlow Condensed"'
-  context.fillText(`${FOCUS_LABELS[result.focus]} / ${PATTERN_LABELS[result.pattern]} / ${FINISH_LABELS[result.finish]}`, 135, 400)
+  context.fillText(`${TEMPLATE_LABELS[result.templateType]} WORKOUT`, 135, 400)
 
   drawLabel(context, 'TIME', `${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`, 135, 510, theme.ink)
   drawLabel(context, 'MAIN BLOCKS PLANNED', String(result.blockCount), 650, 510, theme.ink)
   drawLabel(context, 'EASY', formatClock(result.intensitySeconds.easy), 135, 670, theme.muted)
-  drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 440, 670, theme.ink)
-  drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 745, 670, theme.accent)
+  drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 340, 670, theme.ink)
+  drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 545, 670, theme.accent)
+  drawLabel(context, 'WALK / EASY', formatClock(result.intensitySeconds.recovery), 750, 670, theme.muted)
   drawLabel(context, 'TOP INCLINE', `${result.maximumIncline}%`, 135, 830, theme.ink)
   drawLabel(context, 'ORIGINAL PICK', `${plan.durationMinutes} MIN`, 650, 830, theme.ink)
 
@@ -110,10 +111,10 @@ export function downloadResultImage(file: File) {
 export function formatResultSummary(plan: WorkoutPlan, result: ResultSummary) {
   return [
     `Cardio Slot — ${result.status === 'completed' ? 'Completed' : 'Session ended'}`,
-    `${FOCUS_LABELS[result.focus]} / ${PATTERN_LABELS[result.pattern]} / ${FINISH_LABELS[result.finish]}`,
+    `${TEMPLATE_LABELS[result.templateType]} workout`,
     `Time: ${formatClock(result.elapsedSeconds)} / ${formatClock(result.plannedSeconds)}`,
     `Main blocks planned: ${result.blockCount}`,
-    `Easy: ${formatClock(result.intensitySeconds.easy)} · Strong: ${formatClock(result.intensitySeconds.strong)} · Max: ${formatClock(result.intensitySeconds.max)}`,
+    `Easy: ${formatClock(result.intensitySeconds.easy)} · Strong: ${formatClock(result.intensitySeconds.strong)} · Max: ${formatClock(result.intensitySeconds.max)} · Walk / Easy: ${formatClock(result.intensitySeconds.recovery)}`,
     `Top incline: ${result.maximumIncline}% · Original pick: ${plan.durationMinutes} min`,
   ].join('\n')
 }

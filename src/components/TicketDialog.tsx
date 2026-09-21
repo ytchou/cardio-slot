@@ -2,9 +2,9 @@ import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type { WorkoutPlan } from '../domain/types'
 import { Ticket } from './Ticket'
 
-export function TicketDialog({ plan, opening, reduced, paperRef, onClose, onAdjust, onPull, onStart, onSettled }: {
+export function TicketDialog({ plan, opening, reduced, paperRef, onClose, onPull, onStart, onSettled }: {
   plan: WorkoutPlan; opening: boolean; reduced: boolean; paperRef: RefObject<HTMLDivElement | null>;
-  onClose: () => void; onAdjust: () => void; onPull: () => void; onStart: () => void; onSettled: () => void;
+  onClose: () => void; onPull: () => void; onStart: () => void; onSettled: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const animationRef = useRef<Animation | null>(null)
@@ -62,7 +62,6 @@ export function TicketDialog({ plan, opening, reduced, paperRef, onClose, onAdju
     <Ticket plan={plan}><footer className="ticket-actions">
       <button className="primary-button" disabled={opening} autoFocus onClick={onStart}>Start workout</button>
       <button disabled={opening} onClick={onPull}>Pull again</button>
-      <button disabled={opening} onClick={onAdjust}>Adjust settings</button>
     </footer></Ticket>
     <button className="close-ticket" disabled={opening} onClick={onClose} aria-label="Close ticket">×</button>
   </dialog>

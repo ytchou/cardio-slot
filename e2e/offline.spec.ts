@@ -38,7 +38,6 @@ test('Given the origin goes away, a fresh page launches the cached app', async (
     const online = await context.newPage()
     await online.goto(origin.url)
     await online.evaluate(async () => { await navigator.serviceWorker.ready })
-    await expect(online.locator('.offline-badge')).toHaveText('Ready offline')
     await origin.close()
     const offline = await context.newPage()
     await offline.goto(origin.url, { waitUntil: 'domcontentloaded' })
@@ -53,7 +52,6 @@ test('Given an update arrives during countdown, it waits through the run and res
   try {
     await page.goto(origin.url)
     await page.evaluate(async () => { await navigator.serviceWorker.ready })
-    await expect(page.locator('.offline-badge')).toHaveText('Ready offline')
     await page.reload()
     await page.clock.install({ time: new Date('2026-09-17T06:00:00Z') })
     await page.getByRole('button', { name: 'Pull workout' }).click()
@@ -67,25 +65,24 @@ test('Given an update arrives during countdown, it waits through the run and res
     await page.clock.runFor(5500)
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(initialDocument)
     expect(await page.evaluate(async () => !!(await navigator.serviceWorker.ready).waiting)).toBe(true)
-    await page.getByRole('button', { name: 'End workout', exact: true }).click()
+    await page.getByRole('button', { name: 'End session', exact: true }).click()
     const reloaded = page.waitForEvent('load')
     await page.getByRole('button', { name: 'Yes, end' }).click()
     await page.clock.runFor(500)
     await reloaded
-    await expect(page.getByRole('heading', { name: 'SESSION ENDED' })).toBeVisible()
-    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('cardio-slot-state-v2') ?? 'null'))
+    await expect(page.getByRole('region', { name: 'Workout result' })).toBeVisible()
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('cardio-slot-state-v3') ?? 'null'))
     expect(saved.activeRun).toBeNull()
     expect(saved.latestResult.summary.status).toBe('ended')
   } finally { await origin.close() }
 })
 
 for (const [stage, elapsed] of [['spinning', 600], ['printing', 2600], ['opening', 3150]] as const) {
-  test(`Given an update arrives while ${stage}, activation waits until the ticket is usable`, async ({ page }) => {
+  test(`Given an update arrives while ${stage}, activation waits for the sequence then reloads cleanly`, async ({ page }) => {
     const origin = await startOrigin()
     try {
       await page.goto(origin.url)
       await page.evaluate(async () => { await navigator.serviceWorker.ready })
-      await expect(page.locator('.offline-badge')).toHaveText('Ready offline')
       await page.reload()
       await page.clock.install()
       await page.getByRole('button', { name: 'Pull workout' }).click()
@@ -98,9 +95,8 @@ for (const [stage, elapsed] of [['spinning', 600], ['printing', 2600], ['opening
       const reloaded = page.waitForEvent('load')
       await page.clock.runFor(4000)
       await reloaded
-      await expect(page.getByRole('button', { name: 'View ticket' })).toBeVisible()
-      await page.getByRole('button', { name: 'View ticket' }).click()
-      await expect(page.getByRole('button', { name: 'Start workout' })).toBeEnabled()
+      await expect(page.getByRole('button', { name: 'View ticket' })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Pull workout' })).toBeVisible()
     } finally { await origin.close() }
   })
 }

@@ -5,14 +5,14 @@ import { useMachineSequence, useReducedMotion } from './app/useMachineSequence'
 import { MachineControls } from './components/MachineControls'
 import { ReelMachine } from './components/ReelMachine'
 import { RunScreen } from './components/RunScreen'
-import { Ticket } from './components/Ticket'
 import { TicketDialog } from './components/TicketDialog'
 import { TicketPrinter } from './components/TicketPrinter'
+import { getResultHeadline } from './domain/resultHeadline'
 import { getRunSnapshot } from './domain/runtime'
 import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
 import { createWorkoutSeed } from './platform/random'
-import { canShareResultImage, copyResultSummary, createResultImage, downloadResultImage, shareResultImage } from './platform/share'
+import { createResultImage, downloadResultImage } from './platform/share'
 import { loadPersistedState, savePersistedState } from './platform/storage'
 import { useWakeLock } from './platform/wakeLock'
 import './styles.css'
@@ -22,12 +22,10 @@ export default function App() {
   const [resultFile, setResultFile] = useState<File | null>(null)
   const [resultPreviewUrl, setResultPreviewUrl] = useState('')
   const [resultImageFailed, setResultImageFailed] = useState(false)
-  const [coarsePointer, setCoarsePointer] = useState(() => window.matchMedia('(pointer: coarse)').matches)
-  const [shareMessage, setShareMessage] = useState('')
+  const [resultMessage, setResultMessage] = useState('')
   const [error, setError] = useState('')
   const [persistenceFailed, setPersistenceFailed] = useState(false)
   const [updateReady, setUpdateReady] = useState(false)
-  const [offlineReady, setOfflineReady] = useState(false)
   const pullGuard = useRef(false)
   const previousCompletedPlan = useRef(state.latestResult?.plan ?? null)
   const requestId = useRef(0)
@@ -43,12 +41,11 @@ export default function App() {
     return () => dialog.close()
   }, [installPrompt.showIosHelp])
   const reduced = useReducedMotion()
-  const suppressMotion = reduced || !state.preferences.motion
   const busy = machineBusy(state.flow)
   const active = sessionActive(state.flow)
   const wakeLockStatus = useWakeLock(active)
-  useMachineSequence(state, dispatch, suppressMotion)
-  const { updateServiceWorker } = useRegisterSW({ onNeedRefresh: () => setUpdateReady(true), onOfflineReady: () => setOfflineReady(true) })
+  useMachineSequence(state, dispatch, reduced)
+  const { updateServiceWorker } = useRegisterSW({ onNeedRefresh: () => setUpdateReady(true) })
   const runSnapshot = useMemo(() => state.activeRun ? getRunSnapshot(state.activeRun.plan, state.activeRun.startTimestamp, state.now) : null, [state.activeRun, state.now])
   const durable = useMemo(() => toPersistedState(state), [state.preferences, state.currentTicket, state.activeRun, state.latestResult])
   useEffect(() => { setPersistenceFailed(!savePersistedState(durable)) }, [durable])
@@ -66,12 +63,12 @@ export default function App() {
   useEffect(() => {
     setResultFile(null)
     setResultImageFailed(false)
-    setShareMessage('')
+    setResultMessage('')
     if (!state.latestResult) return
     let cancelled = false
     void createResultImage(state.latestResult.plan, state.latestResult.summary, state.preferences.theme)
       .then(file => { if (!cancelled) setResultFile(file) })
-      .catch(() => { if (!cancelled) { setResultImageFailed(true); setShareMessage('Image preparation is unavailable in this browser.') } })
+      .catch(() => { if (!cancelled) { setResultImageFailed(true); setResultMessage('Image preparation is unavailable in this browser.') } })
     return () => { cancelled = true }
   }, [state.latestResult, state.preferences.theme])
   useEffect(() => {
@@ -80,12 +77,6 @@ export default function App() {
     setResultPreviewUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [resultFile])
-  useEffect(() => {
-    const query = window.matchMedia('(pointer: coarse)')
-    const update = () => setCoarsePointer(query.matches)
-    query.addEventListener('change', update)
-    return () => query.removeEventListener('change', update)
-  }, [])
   useEffect(() => {
     if (!updateReady || active || busy || persistenceFailed) return
     if (savePersistedState(durable)) void updateServiceWorker(true)
@@ -116,64 +107,34 @@ export default function App() {
     dispatch({ type: 'new-workout' })
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
-  const adjust = () => { close(); window.requestAnimationFrame(() => deckRef.current?.focus()) }
-  const shareResult = () => {
-    if (!resultFile) return
-    void shareResultImage(resultFile).then(() => setShareMessage('Shared.')).catch(failure => {
-      if (!(failure instanceof DOMException && failure.name === 'AbortError')) setShareMessage('Sharing did not finish. Try again.')
-    })
-  }
-  const downloadResult = () => { if (resultFile) { downloadResultImage(resultFile); setShareMessage('PNG downloaded.') } }
-  const copySummary = () => {
-    if (!state.latestResult) return
-    void copyResultSummary(state.latestResult.plan, state.latestResult.summary)
-      .then(() => setShareMessage('Summary copied.'))
-      .catch(() => setShareMessage('Summary could not be copied.'))
-  }
-  const canShareImage = resultFile ? canShareResultImage(resultFile) : false
-  const canCopySummary = Boolean(navigator.clipboard?.writeText)
+  const downloadResult = () => { if (resultFile) downloadResultImage(resultFile) }
+  const resultHeadline = state.latestResult ? getResultHeadline(state.latestResult.plan, state.latestResult.summary) : ''
   const machineVisible = !active && state.flow !== 'result'
   return <div className={`app-shell ${active ? 'session-shell' : ''}`}>
     {persistenceFailed && <p className="storage-warning" role="status">Saving is unavailable. Keep this tab open to retain this session.</p>}
     {machineVisible && <main className="machine-page">
       <p className="intro">Pull a workout. Run by feel.</p>
-      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} plan={state.currentTicket} requestId={state.requestId} reduced={suppressMotion} pull={pull}>
+      <ReelMachine busy={busy} spinning={state.flow === 'spinning'} plan={state.currentTicket} requestId={state.requestId} reduced={reduced} pull={pull}>
         <MachineControls preferences={state.preferences} disabled={busy} dispatch={dispatch} deckRef={deckRef} />
         <TicketPrinter flow={state.flow} plan={state.currentTicket} paperRef={paperRef} reopen={button => { ticketReturnFocus.current = button; dispatch({ type: 'open-ticket' }) }} />
       </ReelMachine>
-      <p className="duration-note">Total includes enabled warm-up, cooldown, and recoveries.</p>
       {error && <p role="alert">{error}</p>}
-      <footer className="machine-footer">
-        {installPrompt.canInstall && <button onClick={() => void installPrompt.install()}>Install app</button>}
-        <details><summary>Help</summary><p>Choose your own speeds. Adjust freely. Stop if you feel pain, dizziness, or unwell.</p><p>Easy: relaxed. Strong: controlled effort. Max: short, powerful effort. Use the treadmill controls to change your incline.</p>
-          <button aria-pressed={state.preferences.motion && !reduced} disabled={busy || reduced} onClick={() => dispatch({ type: 'preferences', patch: { motion: !state.preferences.motion } })}>Motion {state.preferences.motion && !reduced ? 'on' : 'off'}</button>
-        </details><span className="offline-badge">{offlineReady ? 'Ready offline' : 'Saving offline'}</span>
-      </footer>
+      {installPrompt.canInstall && <footer className="machine-footer"><button onClick={() => void installPrompt.install()}>Install app</button></footer>}
     </main>}
-    {(state.flow === 'opening' || state.flow === 'ticket') && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket} opening={state.flow === 'opening'} reduced={suppressMotion} paperRef={paperRef}
-      onClose={close} onAdjust={adjust} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })}
+    {(state.flow === 'opening' || state.flow === 'ticket') && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket} opening={state.flow === 'opening'} reduced={reduced} paperRef={paperRef}
+      onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })}
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
-    {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{state.latestResult.summary.status === 'completed' ? 'Nice work.' : 'You called it.'}</h1><p>{state.latestResult.summary.status === 'completed' ? 'The whole ticket, start to finish.' : 'Listening to your body always counts.'}</p></div>
-      <Ticket plan={state.latestResult.plan} result={state.latestResult.summary}>
+    {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{resultHeadline}</h1></div>
+      <section className="result-output" aria-label="Workout result">
         {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt="Shareable workout result preview" />}
         <div className="result-actions"><div className="result-share-actions">
           {!resultFile && !resultImageFailed && <button className="primary-button" disabled>Preparing image…</button>}
-          {resultFile && coarsePointer && <>
-            {canShareImage && <button className="primary-button" onClick={shareResult}>Share image</button>}
-            <button className={canShareImage ? undefined : 'primary-button'} onClick={downloadResult}>Save PNG</button>
-            {canCopySummary && <button onClick={copySummary}>Copy summary</button>}
-          </>}
-          {resultFile && !coarsePointer && <>
-            <button className="primary-button" onClick={downloadResult}>Download PNG</button>
-            {canCopySummary && <button onClick={copySummary}>Copy summary</button>}
-            {canShareImage && <button onClick={shareResult}>Share image</button>}
-          </>}
-          {!resultFile && resultImageFailed && canCopySummary && <button className="primary-button" onClick={copySummary}>Copy summary</button>}
-        </div><button onClick={pullAnother}>Pull another</button></div>
-        {shareMessage && <p role="status">{shareMessage}</p>}
-      </Ticket>
+          {resultFile && <button className="primary-button" onClick={downloadResult}>Download PNG</button>}
+        </div><button onClick={pullAnother}>Pull again</button></div>
+        {resultMessage && <p role="status">{resultMessage}</p>}
+      </section>
     </main>}
     {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><h2 id="install-title">Add to Home Screen</h2><p>In Safari, tap Share, then choose “Add to Home Screen.” Your workouts launch full screen and stay available offline.</p><button autoFocus onClick={installPrompt.closeIosHelp}>Got it</button></dialog>}
   </div>

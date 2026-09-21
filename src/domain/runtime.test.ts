@@ -49,6 +49,6 @@ describe('Given exact phase and incline boundaries', () => {
     if (!recovery) throw new Error('Missing recovery')
     const summary = summarizeResult(plan, recovery.startSeconds + 37, 1800000000000)
     const before = summarizeResult(plan, recovery.startSeconds, 1800000000000)
-    expect(summary.intensitySeconds.easy - before.intensitySeconds.easy).toBe(37)
+    expect(summary.intensitySeconds.recovery - before.intensitySeconds.recovery).toBe(37)
   })
 })

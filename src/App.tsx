@@ -12,7 +12,7 @@ import { getRunSnapshot } from './domain/runtime'
 import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
 import { createWorkoutSeed } from './platform/random'
-import { canShareResultImage, copyResultSummary, createResultImage, downloadResultImage, shareResultImage } from './platform/share'
+import { createResultImage, downloadResultImage } from './platform/share'
 import { loadPersistedState, savePersistedState } from './platform/storage'
 import { useWakeLock } from './platform/wakeLock'
 import './styles.css'
@@ -22,8 +22,7 @@ export default function App() {
   const [resultFile, setResultFile] = useState<File | null>(null)
   const [resultPreviewUrl, setResultPreviewUrl] = useState('')
   const [resultImageFailed, setResultImageFailed] = useState(false)
-  const [coarsePointer, setCoarsePointer] = useState(() => window.matchMedia('(pointer: coarse)').matches)
-  const [shareMessage, setShareMessage] = useState('')
+  const [resultMessage, setResultMessage] = useState('')
   const [error, setError] = useState('')
   const [persistenceFailed, setPersistenceFailed] = useState(false)
   const [updateReady, setUpdateReady] = useState(false)
@@ -64,12 +63,12 @@ export default function App() {
   useEffect(() => {
     setResultFile(null)
     setResultImageFailed(false)
-    setShareMessage('')
+    setResultMessage('')
     if (!state.latestResult) return
     let cancelled = false
     void createResultImage(state.latestResult.plan, state.latestResult.summary, state.preferences.theme)
       .then(file => { if (!cancelled) setResultFile(file) })
-      .catch(() => { if (!cancelled) { setResultImageFailed(true); setShareMessage('Image preparation is unavailable in this browser.') } })
+      .catch(() => { if (!cancelled) { setResultImageFailed(true); setResultMessage('Image preparation is unavailable in this browser.') } })
     return () => { cancelled = true }
   }, [state.latestResult, state.preferences.theme])
   useEffect(() => {
@@ -78,12 +77,6 @@ export default function App() {
     setResultPreviewUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [resultFile])
-  useEffect(() => {
-    const query = window.matchMedia('(pointer: coarse)')
-    const update = () => setCoarsePointer(query.matches)
-    query.addEventListener('change', update)
-    return () => query.removeEventListener('change', update)
-  }, [])
   useEffect(() => {
     if (!updateReady || active || busy || persistenceFailed) return
     if (savePersistedState(durable)) void updateServiceWorker(true)
@@ -114,21 +107,7 @@ export default function App() {
     dispatch({ type: 'new-workout' })
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
-  const shareResult = () => {
-    if (!resultFile) return
-    void shareResultImage(resultFile).then(() => setShareMessage('Shared.')).catch(failure => {
-      if (!(failure instanceof DOMException && failure.name === 'AbortError')) setShareMessage('Sharing did not finish. Try again.')
-    })
-  }
-  const downloadResult = () => { if (resultFile) { downloadResultImage(resultFile); setShareMessage('PNG downloaded.') } }
-  const copySummary = () => {
-    if (!state.latestResult) return
-    void copyResultSummary(state.latestResult.plan, state.latestResult.summary)
-      .then(() => setShareMessage('Summary copied.'))
-      .catch(() => setShareMessage('Summary could not be copied.'))
-  }
-  const canShareImage = resultFile ? canShareResultImage(resultFile) : false
-  const canCopySummary = Boolean(navigator.clipboard?.writeText)
+  const downloadResult = () => { if (resultFile) downloadResultImage(resultFile) }
   const resultHeadline = state.latestResult ? getResultHeadline(state.latestResult.plan, state.latestResult.summary) : ''
   const machineVisible = !active && state.flow !== 'result'
   return <div className={`app-shell ${active ? 'session-shell' : ''}`}>
@@ -152,19 +131,9 @@ export default function App() {
         {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt="Shareable workout result preview" />}
         <div className="result-actions"><div className="result-share-actions">
           {!resultFile && !resultImageFailed && <button className="primary-button" disabled>Preparing image…</button>}
-          {resultFile && coarsePointer && <>
-            {canShareImage && <button className="primary-button" onClick={shareResult}>Share image</button>}
-            <button className={canShareImage ? undefined : 'primary-button'} onClick={downloadResult}>Save PNG</button>
-            {canCopySummary && <button onClick={copySummary}>Copy summary</button>}
-          </>}
-          {resultFile && !coarsePointer && <>
-            <button className="primary-button" onClick={downloadResult}>Download PNG</button>
-            {canCopySummary && <button onClick={copySummary}>Copy summary</button>}
-            {canShareImage && <button onClick={shareResult}>Share image</button>}
-          </>}
-          {!resultFile && resultImageFailed && canCopySummary && <button className="primary-button" onClick={copySummary}>Copy summary</button>}
-        </div><button onClick={pullAnother}>Pull another</button></div>
-        {shareMessage && <p role="status">{shareMessage}</p>}
+          {resultFile && <button className="primary-button" onClick={downloadResult}>Download PNG</button>}
+        </div><button onClick={pullAnother}>Pull again</button></div>
+        {resultMessage && <p role="status">{resultMessage}</p>}
       </section>
     </main>}
     {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><h2 id="install-title">Add to Home Screen</h2><p>In Safari, tap Share, then choose “Add to Home Screen.” Your workouts launch full screen and stay available offline.</p><button autoFocus onClick={installPrompt.closeIosHelp}>Got it</button></dialog>}

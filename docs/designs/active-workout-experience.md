@@ -21,7 +21,7 @@ The current cue is a payline-style instrument with phase, effort, countdown, a r
 
 The result page shows one playful, deterministic completion heading and the generated image, avoiding a second HTML copy of the same statistics. Completed and manually ended sessions draw from separate plain-language heading sets; the choice is stable across reloads for the same result.
 
-The image removes duplicate product branding, “Original pick,” and promotional footer copy. It describes the selected template as “Workout type,” labels the duration breakdown “Time by effort,” and uses one text color for all effort totals so color is not the only organizing cue.
+The image removes duplicate product branding, “Original pick,” and promotional footer copy. It describes the selected template as “Workout type,” leads completed results with “Session completed,” and groups elapsed time, block count, and top incline under a three-column “Session summary.” The separate “Time by effort” section uses one text color for every effort total so color is not the only organizing cue. The result screen offers a single Download PNG action followed by Pull again; it does not expose native sharing or text-copy actions.
 
 ## Acceptance
 

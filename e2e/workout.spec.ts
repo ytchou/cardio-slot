@@ -173,10 +173,10 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
-  await expect(page.getByRole('status')).toHaveText('PNG downloaded.')
+  await expect(page.getByRole('status')).toHaveCount(0)
 })
 
-test('Given a completed session, Pull another clears the old ticket and runs the full sequence to a different workout', async ({ page }) => {
+test('Given a completed session, Pull again clears the old ticket and runs the full sequence to a different workout', async ({ page }) => {
   await page.evaluate(() => {
     Object.defineProperty(crypto, 'getRandomValues', { configurable: true, value: (values: Uint32Array) => { values[0] = 10; return values } })
     const revoke = URL.revokeObjectURL.bind(URL)
@@ -185,6 +185,13 @@ test('Given a completed session, Pull another clears the old ticket and runs the
       ;(window as unknown as { revokedResultUrls: string[] }).revokedResultUrls.push(url)
       revoke(url)
     } })
+    const fillText = CanvasRenderingContext2D.prototype.fillText
+    Object.assign(window, { resultImageText: [] as string[] })
+    CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number, maxWidth?: number) {
+      ;(window as unknown as { resultImageText: string[] }).resultImageText.push(text)
+      if (maxWidth === undefined) fillText.call(this, text, x, y)
+      else fillText.call(this, text, x, y, maxWidth)
+    }
   })
   await page.getByRole('button', { name: '15 min', exact: true }).click()
   await pullWorkout(page)
@@ -192,10 +199,14 @@ test('Given a completed session, Pull another clears the old ticket and runs the
   await page.clock.runFor(5_500)
   await page.clock.fastForward(900_000)
   await expectResultScreen(page)
+  await expectResultImage(page)
+  const imageText = await page.evaluate(() => (window as unknown as { resultImageText: string[] }).resultImageText)
+  expect(imageText).toEqual(expect.arrayContaining(['SESSION COMPLETED', 'SESSION SUMMARY', '# BLOCKS', 'TOP INCLINE']))
+  expect(imageText).not.toEqual(expect.arrayContaining(['COMPLETED', 'MAIN BLOCKS PLANNED', '30:00 / 30:00']))
   const completed = (await saved(page)).latestResult.plan
   const previewUrl = await page.getByRole('img', { name: 'Shareable workout result preview' }).getAttribute('src')
 
-  await page.getByRole('button', { name: 'Pull another' }).click()
+  await page.getByRole('button', { name: 'Pull again' }).click()
   await expect(page.getByRole('button', { name: 'View ticket' })).toHaveCount(0)
   await expect.poll(() => page.evaluate(url => (window as unknown as { revokedResultUrls: string[] }).revokedResultUrls.includes(url ?? ''), previewUrl)).toBe(true)
   await page.getByRole('button', { name: 'Pull workout' }).click()
@@ -241,19 +252,9 @@ test('Given a running workout, the complete map and final-five-second cue follow
   await expect(page.getByText(/NEXT IN [34]…/)).toBeVisible()
 })
 
-test('Given result capabilities, image sharing stays direct and actions adapt to pointer type', async ({ page }) => {
+test('Given a result image is ready, the result actions stay download-only', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.evaluate(() => {
-    Object.defineProperty(navigator, 'canShare', { configurable: true, value: (data: ShareData) => data.files?.every(file => file.type === 'image/png') })
-    Object.defineProperty(navigator, 'share', { configurable: true, value: async (data: ShareData) => {
-      const activated = navigator.userActivation.isActive
-      const file = data.files?.at(0)
-      if (!file) throw new Error('Missing shared result')
-      const image = await createImageBitmap(file)
-      Object.assign(window, { sharedResult: { width: image.width, height: image.height, name: file.name, activated, keys: Object.keys(data) } })
-      image.close()
-    } })
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (text: string) => { Object.assign(window, { copiedSummary: text }) } } })
     const fillText = CanvasRenderingContext2D.prototype.fillText
     Object.assign(window, { resultImageText: [] as string[] })
     CanvasRenderingContext2D.prototype.fillText = function (text: string, x: number, y: number, maxWidth?: number) {
@@ -271,41 +272,24 @@ test('Given result capabilities, image sharing stays direct and actions adapt to
 
   await expectResultImage(page)
   const resultButtons = page.getByRole('region', { name: 'Workout result' }).getByRole('button')
-  await expect(resultButtons).toHaveText(['Share image', 'Save PNG', 'Copy summary', 'Pull another'])
+  await expect(resultButtons).toHaveText(['Download PNG', 'Pull again'])
   const imageText = await page.evaluate(() => (window as unknown as { resultImageText: string[] }).resultImageText)
-  expect(imageText).toEqual(expect.arrayContaining(['WORKOUT TYPE', 'TIME BY EFFORT']))
-  expect(imageText).not.toEqual(expect.arrayContaining(['CARDIO SLOT', 'ORIGINAL PICK', 'Personal pace. Real effort. Your run.', 'cardio-slot · visual treadmill workouts']))
-  await page.getByRole('button', { name: 'Share image' }).click()
-  await expect(page.getByRole('status')).toHaveText('Shared.')
-  expect(await page.evaluate(() => (window as unknown as { sharedResult: unknown }).sharedResult)).toEqual({ width: 1080, height: 1350, name: 'cardio-slot-ended.png', activated: true, keys: ['files'] })
-  await page.getByRole('button', { name: 'Copy summary' }).click()
-  await expect(page.getByRole('status')).toHaveText('Summary copied.')
-  expect(await page.evaluate(() => (window as unknown as { copiedSummary: string }).copiedSummary)).toContain('Cardio Slot — Session ended')
-  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Clipboard denied') } } }))
-  await page.getByRole('button', { name: 'Copy summary' }).click()
-  await expect(page.getByRole('status')).toHaveText('Summary could not be copied.')
-  await expect(page.getByRole('button', { name: 'Pull another' })).toBeEnabled()
+  expect(imageText).toEqual(expect.arrayContaining(['WORKOUT TYPE', 'SESSION SUMMARY', '# BLOCKS', 'TOP INCLINE', 'TIME BY EFFORT']))
+  expect(imageText).not.toEqual(expect.arrayContaining(['CARDIO SLOT', 'ORIGINAL PICK', 'MAIN BLOCKS PLANNED', 'Personal pace. Real effort. Your run.', 'cardio-slot · visual treadmill workouts']))
+  await expect(page.getByRole('button', { name: 'Pull again' })).toBeEnabled()
 
   await page.addInitScript(() => {
     const originalMatchMedia = window.matchMedia.bind(window)
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: (query: string) => query === '(pointer: coarse)'
       ? { matches: false, media: query, onchange: null, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, dispatchEvent: () => true }
       : originalMatchMedia(query) })
-    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true })
-    Object.defineProperty(navigator, 'share', { configurable: true, value: async () => {} })
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => {} } })
   })
   await page.reload()
-  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Download PNG', 'Copy summary', 'Share image', 'Pull another'])
+  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Download PNG', 'Pull again'])
 })
 
-test('Given sharing and clipboard are unsupported, the remaining image action stays usable', async ({ page }) => {
+test('Given the result image is ready, download stays usable', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.evaluate(() => {
-    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false })
-    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined })
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
-  })
   await pullWorkout(page)
   await page.getByRole('button', { name: 'Start workout' }).click()
   await page.clock.runFor(5_500)
@@ -313,10 +297,10 @@ test('Given sharing and clipboard are unsupported, the remaining image action st
   await page.getByRole('button', { name: 'End session', exact: true }).click()
   await page.getByRole('button', { name: 'Yes, end' }).click()
 
-  await expect(page.getByRole('button', { name: 'Save PNG' })).toBeEnabled({ timeout: RESULT_IMAGE_TIMEOUT_MS })
-  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Save PNG', 'Pull another'])
+  await expect(page.getByRole('button', { name: 'Download PNG' })).toBeEnabled({ timeout: RESULT_IMAGE_TIMEOUT_MS })
+  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Download PNG', 'Pull again'])
   const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Save PNG' }).click()
+  await page.getByRole('button', { name: 'Download PNG' }).click()
   expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
 })
 

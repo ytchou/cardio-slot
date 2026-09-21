@@ -1,6 +1,7 @@
 import { createRef } from 'react'
-import { render, waitFor } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
 import { generateWorkout } from '../domain/workout'
+import { renderWithI18n as render } from '../test/render'
 import { TicketHandoff } from './TicketHandoff'
 
 const plan = generateWorkout({ durationMinutes: 15, includeWarmup: true, includeCooldown: true }, 13579)

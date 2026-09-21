@@ -7,24 +7,28 @@ function ReelMark({ label }: { label: string }) {
   return <svg className="reel-mark" viewBox="0 0 64 40" focusable="false"><path d="M8 10h30M8 20h48M8 30h37" /><path d="m45 7 11 13-11 13" /></svg>
 }
 
-export function ReelStrip({ labels, value, index, requestId, reduced, spinning }: { labels: string[]; value: string; index: number; requestId: number; reduced: boolean; spinning: boolean }) {
+interface ReelItem { id: string; label: string }
+
+export function ReelStrip({ items, value, index, requestId, reduced, spinning }: { items: ReelItem[]; value: string; index: number; requestId: number; reduced: boolean; spinning: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
-  const selected = Math.max(0, labels.indexOf(value))
-  const target = labels.length * 10 + selected
-  const rows = Array.from({ length: labels.length * 12 }, (_, row) => labels[row % labels.length])
+  const selected = Math.max(0, items.findIndex(item => item.id === value))
+  const target = items.length * 36 + selected
+  const rows = Array.from({ length: items.length * 38 }, (_, row) => items[row % items.length]).filter(item => item !== undefined)
   useLayoutEffect(() => {
     const strip = ref.current
     if (!strip || !requestId || reduced || !spinning) return
     const animation = strip.animate([
-      { transform: 'translateY(calc(var(--reel-row) * -1))', opacity: 1, offset: 0, easing: 'cubic-bezier(.42,0,1,1)' },
-      { transform: 'translateY(calc(var(--reel-row) * -3))', opacity: .72, offset: .1, easing: 'linear' },
-      { transform: `translateY(calc(var(--reel-row) * -${target - 3}))`, opacity: .72, offset: .72, easing: 'cubic-bezier(.12,.75,.2,1)' },
-      { transform: `translateY(calc(var(--reel-row) * -${target + .12}))`, opacity: 1, offset: .96, easing: 'ease-out' },
-      { transform: `translateY(calc(var(--reel-row) * -${target}))`, opacity: 1, offset: 1 },
+      { transform: 'translateY(calc(var(--reel-row) * -1))', opacity: 1, filter: 'blur(0)', offset: 0, easing: 'cubic-bezier(.6,0,.9,.3)' },
+      { transform: 'translateY(calc(var(--reel-row) * -4))', opacity: .8, filter: 'blur(.5px)', offset: .08, easing: 'cubic-bezier(.4,0,.8,.6)' },
+      { transform: 'translateY(calc(var(--reel-row) * -22))', opacity: .4, filter: 'blur(2px)', offset: .22, easing: 'linear' },
+      { transform: 'translateY(calc(var(--reel-row) * -70))', opacity: .4, filter: 'blur(2px)', offset: .52, easing: 'linear' },
+      { transform: `translateY(calc(var(--reel-row) * -${target - 18}))`, opacity: .48, filter: 'blur(1.5px)', offset: .72, easing: 'cubic-bezier(.25,.33,.35,1)' },
+      { transform: `translateY(calc(var(--reel-row) * -${target + .12}))`, opacity: 1, filter: 'blur(0)', offset: .96, easing: 'ease-out' },
+      { transform: `translateY(calc(var(--reel-row) * -${target}))`, opacity: 1, filter: 'blur(0)', offset: 1 },
     ], { duration: 3_200 + index * 400, fill: 'backwards' })
     return () => animation.cancel()
   }, [requestId, index, target, reduced, spinning])
   return <div className={`reel-window ${spinning && !reduced ? 'is-spinning' : ''}`} aria-hidden="true"><div className="reel-strip" ref={ref} style={{ transform: `translateY(calc(var(--reel-row) * -${target}))` }}>
-    {rows.map((label, row) => <div className="reel-row" key={row}>{label.endsWith('-mark') ? <ReelMark label={label} /> : label}</div>)}
+    {rows.map((item, row) => <div className="reel-row" key={row}>{item.id.endsWith('-mark') ? <ReelMark label={item.id} /> : item.label}</div>)}
   </div><div className="reel-shade" /><div className="reel-payline" /></div>
 }

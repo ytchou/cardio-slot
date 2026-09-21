@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
 import type { WorkoutPlan } from '../domain/types'
+import { useI18n } from '../i18n'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { Ticket } from './Ticket'
 
 export function TicketDialog({ plan, onClose, onPull, onStart }: {
@@ -8,6 +10,7 @@ export function TicketDialog({ plan, onClose, onPull, onStart }: {
   onPull: () => void
   onStart: () => void
 }) {
+  const { t } = useI18n()
   const dialogRef = useRef<HTMLDialogElement>(null)
   useLayoutEffect(() => {
     const dialog = dialogRef.current
@@ -34,11 +37,11 @@ export function TicketDialog({ plan, onClose, onPull, onStart }: {
     const current = targets.indexOf(document.activeElement as HTMLElement)
     const next = (current + (event.shiftKey ? -1 : 1) + targets.length) % targets.length
     targets.at(next)?.focus()
-  }} className="ticket-dialog" ref={dialogRef} aria-label="Your workout ticket" onCancel={event => { event.preventDefault(); onClose() }}>
-    <Ticket plan={plan}><footer className="ticket-actions">
-      <button className="primary-button" autoFocus onClick={onStart}>Start workout</button>
-      <button onClick={onPull}>Pull again</button>
+  }} className="ticket-dialog" ref={dialogRef} aria-label={t('ticket.dialog')} onCancel={event => { event.preventDefault(); onClose() }}>
+    <Ticket plan={plan} headerUtility={<LanguageSwitcher className="ticket-language-switcher" />}><footer className="ticket-actions">
+      <button className="primary-button" autoFocus onClick={onStart}>{t('ticket.start')}</button>
+      <button onClick={onPull}>{t('ticket.pullAgain')}</button>
     </footer></Ticket>
-    <button className="close-ticket" onClick={onClose} aria-label="Close ticket">×</button>
+    <button className="close-ticket" onClick={onClose} aria-label={t('ticket.close')}>×</button>
   </dialog>
 }

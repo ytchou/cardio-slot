@@ -1,0 +1,16 @@
+{
+  "lang": "zh-TW",
+  "name": "Cardio Slot",
+  "short_name": "Cardio Slot",
+  "description": "拉下拉桿，產生安全又清楚的跑步機訓練，照著畫面就能開跑。",
+  "theme_color": "#181713",
+  "background_color": "#181713",
+  "display": "standalone",
+  "start_url": ".",
+  "scope": ".",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

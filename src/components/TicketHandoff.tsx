@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type { WorkoutPlan } from '../domain/types'
+import { useI18n } from '../i18n'
 import { Ticket } from './Ticket'
 
 export function TicketHandoff({ plan, paperRef, reduced, onSettled }: {
@@ -8,6 +9,7 @@ export function TicketHandoff({ plan, paperRef, reduced, onSettled }: {
   reduced: boolean
   onSettled: () => void
 }) {
+  const { t } = useI18n()
   const handoffRef = useRef<HTMLDivElement>(null)
   const callbackRef = useRef(onSettled)
   useLayoutEffect(() => { callbackRef.current = onSettled })
@@ -63,8 +65,8 @@ export function TicketHandoff({ plan, paperRef, reduced, onSettled }: {
   return <div className="ticket-handoff-stage" aria-hidden="true" data-reduced={reduced}>
     <div className="ticket-handoff" ref={handoffRef} inert>
       <Ticket plan={plan}><footer className="ticket-actions">
-        <button className="primary-button" disabled>Start workout</button>
-        <button disabled>Pull again</button>
+        <button className="primary-button" disabled>{t('ticket.start')}</button>
+        <button disabled>{t('ticket.pullAgain')}</button>
       </footer></Ticket>
     </div>
   </div>

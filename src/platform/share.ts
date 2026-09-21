@@ -1,5 +1,6 @@
-import { TEMPLATE_LABELS, THEMES } from '../domain/config'
+import { THEMES } from '../domain/config'
 import type { ResultSummary, ThemeId, WorkoutPlan } from '../domain/types'
+import { effortLabel, templateLabel, translate, type Locale } from '../i18n'
 
 const FONT_LOAD_TIMEOUT_MS = 2_000
 
@@ -9,24 +10,29 @@ function formatClock(seconds: number) {
   return `${minutes}:${remainder.toString().padStart(2, '0')}`
 }
 
-function drawLabel(context: CanvasRenderingContext2D, label: string, value: string, x: number, y: number, color: string) {
+function font(locale: Locale, size: number, weight: number, mono = false) {
+  const family = locale === 'zh-TW' ? '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif' : mono ? '"IBM Plex Mono",monospace' : '"Barlow Condensed",sans-serif'
+  return `${weight} ${size}px ${family}`
+}
+
+function drawLabel(context: CanvasRenderingContext2D, label: string, value: string, x: number, y: number, color: string, locale: Locale) {
   context.fillStyle = color
-  context.font = '500 25px "IBM Plex Mono"'
+  context.font = font(locale, 25, 500, true)
   context.fillText(label, x, y)
-  context.font = '600 48px "Barlow Condensed"'
+  context.font = font(locale, 48, 600)
   context.fillText(value, x, y + 52)
 }
 
-export async function createResultImage(_plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId) {
+export async function createResultImage(_plan: WorkoutPlan, result: ResultSummary, themeId: ThemeId, locale: Locale) {
   let timeout: number | undefined
   try {
     await Promise.race([
-      Promise.allSettled([
+      Promise.allSettled((locale === 'en' ? [
         '700 45px "Barlow Condensed"',
         '800 118px "Barlow Condensed"',
         '600 48px "Barlow Condensed"',
         '500 25px "IBM Plex Mono"',
-      ].map(font => document.fonts.load(font))),
+      ] : []).map(face => document.fonts.load(face))),
       new Promise<void>(resolve => { timeout = window.setTimeout(resolve, FONT_LOAD_TIMEOUT_MS) }),
     ])
   } finally {
@@ -51,35 +57,35 @@ export async function createResultImage(_plan: WorkoutPlan, result: ResultSummar
 
   context.fillStyle = theme.ink
   context.textAlign = 'right'
-  context.font = '500 25px "IBM Plex Mono"'
-  context.fillText(new Date(result.dateIso).toLocaleDateString(undefined, { dateStyle: 'medium' }), 945, 155)
+  context.font = font(locale, 25, 500, true)
+  context.fillText(new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(result.dateIso)), 945, 155)
   context.textAlign = 'left'
 
   context.fillStyle = theme.accent
-  context.font = '800 96px "Barlow Condensed"'
-  context.fillText(result.status === 'completed' ? 'SESSION COMPLETED' : 'SESSION ENDED', 135, 285)
+  context.font = font(locale, 96, 800)
+  context.fillText(translate(locale, result.status === 'completed' ? 'image.completed' : 'image.ended'), 135, 285)
   context.fillStyle = theme.ink
-  context.font = '500 25px "IBM Plex Mono"'
-  context.fillText('WORKOUT TYPE', 135, 350)
+  context.font = font(locale, 25, 500, true)
+  context.fillText(translate(locale, 'image.workoutType'), 135, 350)
   context.fillStyle = theme.accent
-  context.font = '700 72px "Barlow Condensed"'
-  context.fillText(TEMPLATE_LABELS[result.templateType].toUpperCase(), 135, 425)
+  context.font = font(locale, 72, 700)
+  context.fillText(templateLabel(locale, result.templateType).toUpperCase(), 135, 425)
 
   context.fillStyle = theme.ink
-  context.font = '500 29px "IBM Plex Mono"'
-  context.fillText('SESSION SUMMARY', 135, 515)
+  context.font = font(locale, 29, 500, true)
+  context.fillText(translate(locale, 'image.sessionSummary'), 135, 515)
   context.fillRect(135, 540, 810, 3)
-  drawLabel(context, 'TIME', formatClock(result.elapsedSeconds), 135, 600, theme.ink)
-  drawLabel(context, '# BLOCKS', String(result.blockCount), 430, 600, theme.ink)
-  drawLabel(context, 'TOP INCLINE', `${result.maximumIncline}%`, 725, 600, theme.ink)
+  drawLabel(context, translate(locale, 'image.time'), formatClock(result.elapsedSeconds), 135, 600, theme.ink, locale)
+  drawLabel(context, translate(locale, 'image.blocks'), String(result.blockCount), 430, 600, theme.ink, locale)
+  drawLabel(context, translate(locale, 'image.topIncline'), `${result.maximumIncline}%`, 725, 600, theme.ink, locale)
 
-  context.font = '500 29px "IBM Plex Mono"'
-  context.fillText('TIME BY EFFORT', 135, 780)
+  context.font = font(locale, 29, 500, true)
+  context.fillText(translate(locale, 'image.timeByEffort'), 135, 780)
   context.fillRect(135, 805, 810, 3)
-  drawLabel(context, 'EASY', formatClock(result.intensitySeconds.easy), 135, 870, theme.ink)
-  drawLabel(context, 'STRONG', formatClock(result.intensitySeconds.strong), 340, 870, theme.ink)
-  drawLabel(context, 'MAX', formatClock(result.intensitySeconds.max), 545, 870, theme.ink)
-  drawLabel(context, 'WALK / EASY', formatClock(result.intensitySeconds.recovery), 750, 870, theme.ink)
+  drawLabel(context, effortLabel(locale, 'easy').toUpperCase(), formatClock(result.intensitySeconds.easy), 135, 870, theme.ink, locale)
+  drawLabel(context, effortLabel(locale, 'strong').toUpperCase(), formatClock(result.intensitySeconds.strong), 340, 870, theme.ink, locale)
+  drawLabel(context, effortLabel(locale, 'max').toUpperCase(), formatClock(result.intensitySeconds.max), 545, 870, theme.ink, locale)
+  drawLabel(context, effortLabel(locale, 'recovery').toUpperCase(), formatClock(result.intensitySeconds.recovery), 750, 870, theme.ink, locale)
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not render result image')), 'image/png')

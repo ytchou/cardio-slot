@@ -26,15 +26,23 @@ describe('Given a runner pulls one workout template', () => {
           const range = DURATION_DEFINITIONS[durationMinutes].blockRanges[templateType]
           expect(main.length).toBeGreaterThanOrEqual(range[0])
           expect(main.length).toBeLessThanOrEqual(range[1])
-          expect(recoveries).toHaveLength(main.length)
+          expect(recoveries).toHaveLength(Math.max(0, main.length - 1))
           expect(recoveries.every(block => block.intervals.length === 1 && block.intervals[0]?.intensity === 'recovery')).toBe(true)
+          expect(main.every(block => block.intervals.at(-1)?.intensity !== 'recovery')).toBe(true)
+          expect(main.at(-1)?.intervals.at(-1)?.intensity).toBe(includeCooldown ? 'max' : 'easy')
+          if (!includeCooldown) {
+            expect(main.at(-1)?.intervals.at(-1)?.incline).toBe(1)
+            expect(main.at(-1)?.intervals.at(-1)?.durationSeconds).toBe(60)
+          }
+          expect(plan.blocks.at(-1)?.kind).toBe(includeCooldown ? 'cooldown' : 'main')
 
           const timeline = intervals(plan)
           expect(timeline.reduce((total, interval) => total + interval.durationSeconds, 0)).toBe(durationMinutes * 60)
           expect(timeline.every(interval => interval.durationSeconds >= 30 && interval.durationSeconds % 15 === 0)).toBe(true)
           for (const [index, interval] of timeline.entries()) {
             if (interval.intensity !== 'max') continue
-            expect(timeline[index + 1]?.intensity).toBe('recovery')
+            expect(['recovery', 'easy']).toContain(timeline[index + 1]?.intensity)
+            if (timeline[index + 1]?.intensity === 'easy') expect(timeline[index + 1]?.incline).toBe(1)
             expect(timeline[index + 1]?.durationSeconds).toBeGreaterThanOrEqual(interval.durationSeconds)
           }
           const maxSeconds = timeline.filter(interval => interval.intensity === 'max').reduce((total, interval) => total + interval.durationSeconds, 0)
@@ -60,8 +68,9 @@ describe('Given a runner pulls one workout template', () => {
         expect(hillsMain.every(block => block.intervals[0]?.intensity === 'easy' && block.intervals[0]?.incline === 1)).toBe(true)
         expect(hillsMain.flatMap(block => block.intervals).filter(interval => interval.intensity === 'strong').every(interval => interval.durationSeconds <= 120 && interval.incline <= 5)).toBe(true)
         for (const block of hillsMain) {
-          const aboveFlat = block.intervals.filter(interval => interval.incline > 1).reduce((total, interval) => total + interval.durationSeconds, 0)
-          const total = block.intervals.reduce((sum, interval) => sum + interval.durationSeconds, 0)
+          const activeIntervals = block.intervals.filter(interval => interval.intensity !== 'recovery')
+          const aboveFlat = activeIntervals.filter(interval => interval.incline > 1).reduce((total, interval) => total + interval.durationSeconds, 0)
+          const total = activeIntervals.reduce((sum, interval) => sum + interval.durationSeconds, 0)
           expect(aboveFlat / total).toBeGreaterThanOrEqual(0.7)
           expect(aboveFlat / total).toBeLessThanOrEqual(0.85)
         }
@@ -99,7 +108,23 @@ describe('Given a corrupted timeline reaches final validation', () => {
     const maxIndex = timeline.findIndex(interval => interval.intensity === 'max')
     const recovery = timeline[maxIndex + 1]
     if (!recovery) throw new Error('Missing recovery')
-    recovery.intensity = 'easy'
+    recovery.intensity = 'strong'
     expect(validateWorkout(missingRecovery).some(issue => issue.code === 'max-recovery')).toBe(true)
+
+    const trailingRecovery = structuredClone(original)
+    const finalMain = trailingRecovery.blocks.filter(block => block.kind === 'main').at(-1)
+    const finalInterval = finalMain?.intervals.at(-1)
+    if (!finalInterval) throw new Error('Missing final main interval')
+    finalInterval.intensity = 'recovery'
+    expect(validateWorkout(trailingRecovery).some(issue => issue.code === 'main-ending')).toBe(true)
+
+    const misplacedRecovery = structuredClone(original)
+    const recoveryIndex = misplacedRecovery.blocks.findIndex(block => block.kind === 'recovery')
+    if (recoveryIndex < 0) throw new Error('Missing recovery block')
+    const [recoveryBlock] = misplacedRecovery.blocks.splice(recoveryIndex, 1)
+    if (!recoveryBlock) throw new Error('Missing recovery block')
+    const finalMainIndex = misplacedRecovery.blocks.map(block => block.kind).lastIndexOf('main')
+    misplacedRecovery.blocks.splice(finalMainIndex + 1, 0, recoveryBlock)
+    expect(validateWorkout(misplacedRecovery).some(issue => issue.code === 'recovery-placement')).toBe(true)
   })
 })

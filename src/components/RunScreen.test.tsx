@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { createInitialState } from '../app/state'
 import { getRunSnapshot } from '../domain/runtime'
 import { generateWorkout } from '../domain/workout'
+import { renderWithI18n as render } from '../test/render'
 import { RunScreen } from './RunScreen'
 
 describe('Given the browser reports screen wake-lock state', () => {

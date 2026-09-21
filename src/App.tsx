@@ -2,13 +2,14 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { appReducer, createInitialState, machineBusy, sessionActive, toPersistedState } from './app/state'
 import { useMachineSequence, useReducedMotion } from './app/useMachineSequence'
-import { MachineControls, MachineFinish } from './components/MachineControls'
+import { MachineControls } from './components/MachineControls'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { ReelMachine } from './components/ReelMachine'
 import { RunScreen } from './components/RunScreen'
 import { TicketDialog } from './components/TicketDialog'
 import { TicketHandoff } from './components/TicketHandoff'
 import { TicketPrinter } from './components/TicketPrinter'
-import { getResultHeadline } from './domain/resultHeadline'
+import { getResultHeadlineKey } from './domain/resultHeadline'
 import { getRunSnapshot } from './domain/runtime'
 import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
@@ -16,15 +17,16 @@ import { createWorkoutSeed } from './platform/random'
 import { createResultImage, downloadResultImage } from './platform/share'
 import { loadPersistedState, savePersistedState } from './platform/storage'
 import { useWakeLock } from './platform/wakeLock'
+import { useI18n } from './i18n'
 import './styles.css'
 
 export default function App() {
+  const { locale, t } = useI18n()
   const [state, dispatch] = useReducer(appReducer, undefined, () => createInitialState(loadPersistedState()))
   const [resultFile, setResultFile] = useState<File | null>(null)
   const [resultPreviewUrl, setResultPreviewUrl] = useState('')
   const [resultImageFailed, setResultImageFailed] = useState(false)
-  const [resultMessage, setResultMessage] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState(false)
   const [persistenceFailed, setPersistenceFailed] = useState(false)
   const [updateReady, setUpdateReady] = useState(false)
   const pullGuard = useRef(false)
@@ -64,14 +66,13 @@ export default function App() {
   useEffect(() => {
     setResultFile(null)
     setResultImageFailed(false)
-    setResultMessage('')
     if (!state.latestResult) return
     let cancelled = false
-    void createResultImage(state.latestResult.plan, state.latestResult.summary, state.preferences.theme)
+    void createResultImage(state.latestResult.plan, state.latestResult.summary, state.preferences.theme, locale)
       .then(file => { if (!cancelled) setResultFile(file) })
-      .catch(() => { if (!cancelled) { setResultImageFailed(true); setResultMessage('Image preparation is unavailable in this browser.') } })
+      .catch(() => { if (!cancelled) setResultImageFailed(true) })
     return () => { cancelled = true }
-  }, [state.latestResult, state.preferences.theme])
+  }, [locale, state.latestResult, state.preferences.theme])
   useEffect(() => {
     if (!resultFile) { setResultPreviewUrl(''); return }
     const url = URL.createObjectURL(resultFile)
@@ -97,10 +98,10 @@ export default function App() {
         : generateWorkout(request, seed)
       dispatch({ type: 'pull', requestId: ++requestId.current, plan })
       previousCompletedPlan.current = null
-      setError('')
+      setError(false)
     } catch {
       pullGuard.current = false
-      setError('The ticket could not be generated. Please pull again.')
+      setError(true)
     }
   }
   const pullAnother = () => {
@@ -109,38 +110,38 @@ export default function App() {
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
   const downloadResult = () => { if (resultFile) downloadResultImage(resultFile) }
-  const resultHeadline = state.latestResult ? getResultHeadline(state.latestResult.plan, state.latestResult.summary) : ''
+  const resultHeadline = state.latestResult ? t(getResultHeadlineKey(state.latestResult.plan, state.latestResult.summary)) : ''
   const machineVisible = !active && state.flow !== 'result'
-  return <div className={`app-shell ${active ? 'session-shell' : ''}`}>
-    {persistenceFailed && <p className="storage-warning" role="status">Saving is unavailable. Keep this tab open to retain this session.</p>}
+  const showFullHeader = !active && state.flow !== 'ticket'
+  return <div className={`app-shell ${active ? 'session-shell' : ''} ${showFullHeader ? 'has-app-header' : ''}`}>
+    {showFullHeader && <header className="app-header"><span className="app-wordmark">CARDIO SLOT</span><div className="app-utilities">
+      {installPrompt.canInstall && <button className="install-button" aria-label={t('app.install')} onClick={() => void installPrompt.install()}><span className="install-label-full">{t('app.install')}</span><span className="install-label-short" aria-hidden="true">{t('app.installShort')}</span></button>}
+      <LanguageSwitcher />
+    </div></header>}
+    {persistenceFailed && <p className="storage-warning" role="status">{t('app.storageWarning')}</p>}
     {machineVisible && <main className="machine-page">
-      <div className="machine-toolbar">
-        <p className="intro">Pull your workout. Run your way.</p>
-        <MachineFinish preferences={state.preferences} disabled={busy} dispatch={dispatch} />
-      </div>
       <ReelMachine busy={busy} spinning={state.flow === 'spinning'} attention={state.flow === 'configure' && !state.currentTicket} plan={state.currentTicket} requestId={state.requestId} reduced={reduced} pull={pull}>
         <MachineControls preferences={state.preferences} disabled={busy} dispatch={dispatch} deckRef={deckRef} />
         <TicketPrinter flow={state.flow} plan={state.currentTicket} paperRef={paperRef} reopen={button => { ticketReturnFocus.current = button; dispatch({ type: 'open-ticket' }) }} />
       </ReelMachine>
-      {error && <p role="alert">{error}</p>}
-      {installPrompt.canInstall && <footer className="machine-footer"><button onClick={() => void installPrompt.install()}>Install app</button></footer>}
+      {error && <p role="alert">{t('app.generationError')}</p>}
     </main>}
     {state.flow === 'opening' && state.currentTicket && <TicketHandoff key={state.requestId} plan={state.currentTicket} reduced={reduced} paperRef={paperRef}
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
     {state.flow === 'ticket' && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket}
       onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })} />}
-    {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>GET READY</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>Find your stride. Your session starts in a moment.</p></main>}
+    {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><LanguageSwitcher className="active-language-switcher" /><p>{t('countdown.ready')}</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>{t('countdown.instructions')}</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
     {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{resultHeadline}</h1></div>
-      <section className="result-output" aria-label="Workout result">
-        {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt="Shareable workout result preview" />}
+      <section className="result-output" aria-label={t('result.region')}>
+        {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt={t('result.preview')} />}
         <div className="result-actions"><div className="result-share-actions">
-          {!resultFile && !resultImageFailed && <button className="primary-button" disabled>Preparing image…</button>}
-          {resultFile && <button className="primary-button" onClick={downloadResult}>Download PNG</button>}
-        </div><button onClick={pullAnother}>Pull again</button></div>
-        {resultMessage && <p role="status">{resultMessage}</p>}
+          {!resultFile && !resultImageFailed && <button className="primary-button" disabled>{t('result.preparing')}</button>}
+          {resultFile && <button className="primary-button" onClick={downloadResult}>{t('result.download')}</button>}
+        </div><button onClick={pullAnother}>{t('ticket.pullAgain')}</button></div>
+        {resultImageFailed && <p role="status">{t('result.imageUnavailable')}</p>}
       </section>
     </main>}
-    {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><h2 id="install-title">Add to Home Screen</h2><p>In Safari, tap Share, then choose “Add to Home Screen.” Your workouts launch full screen and stay available offline.</p><button autoFocus onClick={installPrompt.closeIosHelp}>Got it</button></dialog>}
+    {installPrompt.showIosHelp && <dialog ref={installDialogRef} onCancel={installPrompt.closeIosHelp} className="install-help" aria-labelledby="install-title"><LanguageSwitcher className="dialog-language-switcher" /><h2 id="install-title">{t('app.installTitle')}</h2><p>{t('app.installInstructions')}</p><button autoFocus onClick={installPrompt.closeIosHelp}>{t('app.gotIt')}</button></dialog>}
   </div>
 }

@@ -43,7 +43,24 @@ test('Given the origin goes away, a fresh page launches the cached app', async (
     await offline.goto(origin.url, { waitUntil: 'domcontentloaded' })
     await expect(offline.getByRole('button', { name: 'Pull workout' })).toBeVisible()
     await offline.getByRole('button', { name: 'Pull workout' }).click()
-    await expect(offline.getByRole('button', { name: 'Start workout' })).toBeEnabled()
+    await expect(offline.getByRole('button', { name: 'Start workout' })).toBeEnabled({ timeout: 10_000 })
+  } finally { await origin.close() }
+})
+
+test('Given Traditional Chinese is selected, an offline reload keeps the localized app', async ({ context }) => {
+  const origin = await startOrigin()
+  try {
+    const online = await context.newPage()
+    await online.goto(origin.url)
+    await online.getByRole('button', { name: 'Traditional Chinese' }).click()
+    await expect(online.locator('html')).toHaveAttribute('lang', 'zh-TW')
+    await online.evaluate(async () => { await navigator.serviceWorker.ready })
+    await origin.close()
+
+    const offline = await context.newPage()
+    await offline.goto(origin.url, { waitUntil: 'domcontentloaded' })
+    await expect(offline.locator('html')).toHaveAttribute('lang', 'zh-TW')
+    await expect(offline.getByRole('button', { name: '拉出訓練' })).toBeVisible()
   } finally { await origin.close() }
 })
 

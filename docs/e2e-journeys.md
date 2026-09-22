@@ -8,8 +8,8 @@ Route: `/cardio-slot/`. CI runs Mobile Chrome (Chromium) and Mobile Safari (WebK
 | Unstarted ticket refresh | workout.spec.ts | Reload clears the preview and View ticket affordance while preserving configuration preferences |
 | Coordinated template reveal | workout.spec.ts | Three reels remain present; matched marks frame one Endurance, Hills, or Speed result and the accessible status announces that single template |
 | Every printed instruction matches the accepted timeline | workout.spec.ts | Ordered interval identities match the saved plan |
-| Selected ticket interval cards | workout.spec.ts | Every main block uses compact cards while preserving exact time, effort, incline, order and interval identity; recovery and bookends remain static; ticket cues and legacy next-block labels stay absent |
-| Ticket safety and main-block disclosure | workout.spec.ts | Safety guidance and four-state Easy/Strong/Max/Walk-Easy guide are present; Block 1 opens first; blocks switch or all close; summaries, effort strips, regions and arrow-key focus remain accessible |
+| Selected ticket interval cards | workout.spec.ts | Every main block uses compact cards while preserving exact time, effort, incline, order and interval identity; recovery and bookends remain labeled transition strips; ticket cues and legacy next-block labels stay absent |
+| Ticket safety and main-block disclosure | workout.spec.ts | Safety guidance, workout type and four-state Easy/Strong/Max/Walk-Easy guide are present; Block 1 opens first; chronological duration-weighted effort strips, regions and arrow-key focus remain accessible without repeated block metadata |
 | Rotation during configuration, spinning, printing, opening, receipt, countdown, run and end confirmation | workout.spec.ts | Same plan ID/start timestamp; receipt usable; natural completion persists scheduled endpoint |
 | Reload during countdown and running; delayed advancement | workout.spec.ts | Original future start and final scheduled result retained |
 | Lever keyboard input/reduced motion/modal focus | workout.spec.ts | Enter/Space; trapped Tab; Escape; lever and outlet focus restoration |
@@ -20,6 +20,7 @@ Route: `/cardio-slot/`. CI runs Mobile Chrome (Chromium) and Mobile Safari (WebK
 | True offline fresh-page launch | offline.spec.ts | Test-owned HTTP origin is shut down after SW readiness; both engines launch and pull |
 | Deferred service-worker activation | offline.spec.ts | Changed SW waits through spinning/printing/opening/countdown/run, reload clears unstarted previews, and saved runs/results still restore |
 | iPhone installation guidance | workout.spec.ts | Safari sees Add to Home Screen instructions (only this platform-specific test skips Chromium) |
+| English and Traditional Chinese localization | i18n.spec.ts | Browser detection, manual switching during mechanics and running, persisted override, metadata, ticket copy, accessibility, unchanged plan/timer, and localized result image |
 
 Visual artifacts and review notes: `docs/reviews/handoff-feat-cardio-slot-redesign.md`.
 

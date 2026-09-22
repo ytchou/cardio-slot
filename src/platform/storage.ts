@@ -25,7 +25,7 @@ function registered(value: unknown, registry: object): value is string { return 
 function readPreferences(value: unknown): Preferences | null {
   if (!object(value) || !finite(value.durationMinutes) || !registered(String(value.durationMinutes), DURATION_DEFINITIONS) ||
       !registered(value.theme, THEMES) || typeof value.includeWarmup !== 'boolean' || typeof value.includeCooldown !== 'boolean') return null
-  return { durationMinutes: value.durationMinutes, includeWarmup: value.includeWarmup, includeCooldown: value.includeCooldown, theme: value.theme } as Preferences
+  return { durationMinutes: value.durationMinutes, includeWarmup: value.includeWarmup, includeCooldown: value.includeCooldown, theme: 'track' } as Preferences
 }
 
 function readPlan(value: unknown): WorkoutPlan | null {
@@ -74,7 +74,7 @@ function migratePreferences(storage: Pick<Storage, 'getItem'>) {
   try {
     const legacy: unknown = JSON.parse(legacyRaw)
     if (!object(legacy) || legacy.version !== 1 || !registered(legacy.theme, THEMES)) return null
-    return { ...DEFAULT_PREFERENCES, theme: legacy.theme } as Preferences
+    return { ...DEFAULT_PREFERENCES }
   } catch { return null }
 }
 

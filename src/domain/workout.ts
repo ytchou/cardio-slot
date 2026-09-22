@@ -160,7 +160,9 @@ function createPlan(request: WorkoutRequest, seed: number, templateType: Templat
   const blockCount = randomInteger(range[0], range[1], random)
   const bookendSeconds = definition.bookendMinutes * 60
   const enabledBookends = Number(request.includeWarmup) + Number(request.includeCooldown)
-  const mainSeconds = request.durationMinutes * 60 - enabledBookends * bookendSeconds - blockCount * 60
+  const finalEasySeconds = request.includeCooldown ? 0 : 60
+  const recoverySeconds = (blockCount - 1) * 60 + finalEasySeconds
+  const mainSeconds = request.durationMinutes * 60 - enabledBookends * bookendSeconds - recoverySeconds
   if (mainSeconds < blockCount * 120) throw new Error('No feasible main block count')
   const blockSeconds = distributeSeconds(mainSeconds, blockCount)
   const sessionSeconds = request.durationMinutes * 60
@@ -215,11 +217,12 @@ function createPlan(request: WorkoutRequest, seed: number, templateType: Templat
     if (templateType === 'endurance') segments = buildEnduranceBlock(seconds, durations[0] ?? null, random)
     else if (templateType === 'hills') segments = buildHillsBlock(seconds, durations[0] ?? null, random)
     else segments = durations.length > 1 ? buildSprintBlock(seconds, durations) : buildProgressionBlock(seconds, durations[0] ?? 30, random)
+    if (index === blockCount - 1 && finalEasySeconds) segments.push(segment('easy', 1, finalEasySeconds))
     const id = `block-${index + 1}`
     const intervals = intervalsForSegments(segments, id, offset)
     blocks.push({ id, kind: 'main', mainBlockIndex: index + 1, label: `Block ${index + 1} of ${blockCount}`, intervals })
-    offset += seconds
-    addStatic('recovery', 60, index < blockCount - 1 ? index + 2 : undefined)
+    offset += seconds + (index === blockCount - 1 ? finalEasySeconds : 0)
+    if (index < blockCount - 1) addStatic('recovery', 60, index + 2)
   }
   if (request.includeCooldown) addStatic('cooldown', bookendSeconds)
 

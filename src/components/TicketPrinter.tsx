@@ -1,9 +1,11 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type { AppFlow } from '../app/state'
 import type { WorkoutPlan } from '../domain/types'
+import { useI18n } from '../i18n'
 import { TicketHeading } from './Ticket'
 
 export function TicketPrinter({ plan, flow, paperRef, reopen }: { plan: WorkoutPlan | null; flow: AppFlow; paperRef: RefObject<HTMLDivElement | null>; reopen: (button: HTMLButtonElement) => void }) {
+  const { t } = useI18n()
   const feedRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const feed = feedRef.current
@@ -16,10 +18,10 @@ export function TicketPrinter({ plan, flow, paperRef, reopen }: { plan: WorkoutP
     observer.observe(paper)
     return () => observer.disconnect()
   }, [paperRef])
-  return <div className="printer"><span className="printer-label">TICKET OUT</span><div className="printer-slit" />
+  return <div className="printer"><div className="printer-slit" />
     <div ref={feedRef} className={`paper-feed ${flow === 'printing' ? 'is-feeding' : ''} ${flow === 'opening' ? 'is-handoff' : ''}`} aria-hidden="true">
       <div className="paper-travel"><div className="printer-paper" ref={paperRef}><div className="ticket">{plan && <TicketHeading plan={plan} />}</div></div></div>
     </div><div className="printer-lip" />
-    {plan && ['configure', 'ticket'].includes(flow) && <button className="view-ticket" onClick={event => reopen(event.currentTarget)}>View ticket</button>}
+    {plan && ['configure', 'ticket'].includes(flow) && <button className="view-ticket" onClick={event => reopen(event.currentTarget)}>{t('ticket.view')}</button>}
   </div>
 }

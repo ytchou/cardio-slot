@@ -37,6 +37,12 @@ describe('Given version 3 preferences and sessions', () => {
     expect(restored?.blocks.flatMap(block => block.intervals.map(interval => interval.id))).toEqual(plan.blocks.flatMap(block => block.intervals.map(interval => interval.id)))
   })
 
+  it('normalizes a saved cabinet theme to Track', () => {
+    const storage = memory()
+    savePersistedState({ ...empty, preferences: { ...DEFAULT_PREFERENCES, theme: 'neon' } }, storage)
+    expect(loadPersistedState(storage)?.preferences.theme).toBe('track')
+  })
+
   it('rejects malformed version 3 workout state', () => {
     const storage = memory()
     for (const value of [{ version: 99 }, { ...empty, activeRun: { plan, startTimestamp: 'tomorrow' } }, { ...empty, currentTicket: { ...plan, blocks: [] } }, { ...empty, currentTicket: { ...plan, id: 'wrong-request' } }]) {
@@ -51,13 +57,13 @@ describe('Given state from an older engine', () => {
     const storage = memory()
     const preferences = { durationMinutes: 45, includeWarmup: false, includeCooldown: true, theme: 'neon' }
     storage.setItem(PREVIOUS_STORAGE_KEY, JSON.stringify({ version: 2, preferences, currentTicket: { focus: 'mixed' }, activeRun: { plan: {} }, latestResult: { plan: {} } }))
-    expect(loadPersistedState(storage)).toEqual({ version: 3, preferences, currentTicket: null, activeRun: null, latestResult: null })
+    expect(loadPersistedState(storage)).toEqual({ version: 3, preferences: { ...preferences, theme: 'track' }, currentTicket: null, activeRun: null, latestResult: null })
   })
 
   it('can preserve a legacy cabinet theme without importing a legacy workout', () => {
     const storage = memory()
     storage.setItem(LEGACY_STORAGE_KEY, JSON.stringify({ version: 1, theme: 'mono', currentTicket: { focus: 'endurance' } }))
-    expect(loadPersistedState(storage)).toEqual({ version: 3, preferences: { ...DEFAULT_PREFERENCES, theme: 'mono' }, currentTicket: null, activeRun: null, latestResult: null })
+    expect(loadPersistedState(storage)).toEqual({ version: 3, preferences: DEFAULT_PREFERENCES, currentTicket: null, activeRun: null, latestResult: null })
   })
 })
 

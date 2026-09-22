@@ -53,8 +53,9 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
     }
     const index = allIntervals.indexOf(interval)
     const next = allIntervals[index + 1]
-    if (!next || next.intensity !== 'recovery' || next.durationSeconds < interval.durationSeconds) {
-      issues.push({ code: 'max-recovery', message: `MAX interval ${interval.id} needs equal-or-longer WALK / EASY.` })
+    const isLowEffortRecovery = next?.intensity === 'recovery' || (next?.intensity === 'easy' && next.incline === 1)
+    if (!next || !isLowEffortRecovery || next.durationSeconds < interval.durationSeconds) {
+      issues.push({ code: 'max-recovery', message: `MAX interval ${interval.id} needs equal-or-longer Easy or WALK / EASY.` })
     }
   }
   for (let index = 1; index < allIntervals.length; index++) {
@@ -64,7 +65,7 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
   }
 
   const recoveries = plan.blocks.filter(block => block.kind === 'recovery')
-  if (recoveries.length !== mainBlocks.length) issues.push({ code: 'recoveries', message: 'Every main block needs one following recovery.' })
+  if (recoveries.length !== Math.max(0, mainBlocks.length - 1)) issues.push({ code: 'recoveries', message: 'Main blocks need one recovery between each pair.' })
   const warmups = plan.blocks.filter(block => block.kind === 'warmup')
   const cooldowns = plan.blocks.filter(block => block.kind === 'cooldown')
   if (warmups.length !== Number(plan.includeWarmup) || cooldowns.length !== Number(plan.includeCooldown) ||
@@ -82,8 +83,12 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
     if (block.kind === 'main' && (seconds < 120 || block.mainBlockIndex !== mainBlocks.indexOf(block) + 1)) {
       issues.push({ code: 'main-block', message: 'Main blocks need at least two minutes and sequential indices.' })
     }
-    if (block.kind === 'recovery' && (seconds !== 60 || block.intervals.length !== 1 || block.intervals[0]?.intensity !== 'recovery' || block.intervals[0]?.incline !== 1 || plan.blocks[index - 1]?.kind !== 'main')) {
-      issues.push({ code: 'recovery-placement', message: 'Boundary recovery must follow a main block and last one minute.' })
+    if (block.kind === 'main' && block.intervals.at(-1)?.intensity === 'recovery') {
+      issues.push({ code: 'main-ending', message: 'Main blocks cannot end with WALK / EASY.' })
+    }
+    if (block.kind === 'recovery' && (seconds !== 60 || block.intervals.length !== 1 || block.intervals[0]?.intensity !== 'recovery' || block.intervals[0]?.incline !== 1 ||
+        plan.blocks[index - 1]?.kind !== 'main' || plan.blocks[index + 1]?.kind !== 'main')) {
+      issues.push({ code: 'recovery-placement', message: 'Boundary recovery must sit between main blocks and last one minute.' })
     }
     if ((block.kind === 'warmup' || block.kind === 'cooldown') && (seconds !== definition.bookendMinutes * 60 || block.intervals.some(interval => interval.intensity !== 'easy' || interval.incline !== 1))) {
       issues.push({ code: 'bookend', message: 'Bookends must match their duration and stay Easy at 1%.' })
@@ -92,9 +97,12 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
 
   if (plan.templateType === 'endurance') {
     const mainIntervals = mainBlocks.flatMap(block => block.intervals)
-    if (mainIntervals.filter(interval => interval.intensity === 'max').length !== 1 || mainBlocks.at(-1)?.intervals.at(-1)?.intensity !== 'max' ||
+    const finalIntervals = mainBlocks.at(-1)?.intervals ?? []
+    const validFinish = plan.includeCooldown ? finalIntervals.at(-1)?.intensity === 'max' :
+      finalIntervals.at(-2)?.intensity === 'max' && finalIntervals.at(-1)?.intensity === 'easy' && finalIntervals.at(-1)?.incline === 1
+    if (mainIntervals.filter(interval => interval.intensity === 'max').length !== 1 || !validFinish ||
         mainBlocks.slice(0, -1).some(block => block.intervals.some(interval => interval.intensity === 'recovery'))) {
-      issues.push({ code: 'endurance-shape', message: 'Endurance must stay continuous until one final MAX.' })
+      issues.push({ code: 'endurance-shape', message: 'Endurance must stay continuous through one final MAX and its low-effort follow-up.' })
     }
     if (mainIntervals.some(interval => interval.incline > 2 || (interval.intensity === 'strong' && interval.durationSeconds > 180))) {
       issues.push({ code: 'endurance-effort', message: 'Endurance exceeds its incline or Strong duration.' })
@@ -107,8 +115,9 @@ export function validateWorkout(plan: WorkoutPlan): ValidationIssue[] {
       if (block.intervals.some(interval => interval.intensity === 'strong' && (interval.durationSeconds > 120 || interval.incline > 5))) {
         issues.push({ code: 'hills-strong', message: 'Hills Strong work exceeds its duration or incline cap.' })
       }
-      const aboveFlat = block.intervals.filter(interval => interval.incline > 1).reduce((total, interval) => total + interval.durationSeconds, 0)
-      const ratio = aboveFlat / secondsFor(block.intervals)
+      const activeIntervals = block === mainBlocks.at(-1) && !plan.includeCooldown ? block.intervals.slice(0, -1) : block.intervals
+      const aboveFlat = activeIntervals.filter(interval => interval.incline > 1).reduce((total, interval) => total + interval.durationSeconds, 0)
+      const ratio = aboveFlat / secondsFor(activeIntervals)
       if (ratio < 0.7 || ratio > 0.85) issues.push({ code: 'hills-ratio', message: 'Hills incline time must stay within its target band.' })
     }
   }

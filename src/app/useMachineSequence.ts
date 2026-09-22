@@ -13,11 +13,15 @@ export function useReducedMotion() {
 }
 
 export function useMachineSequence(state: AppState, dispatch: Dispatch<AppAction>, reduced: boolean) {
-  const accepted = state.requestId
   useEffect(() => {
-    if (!accepted) return
-    const timers = ([['printing', 2470], ['opening', 3070], ['ticket', 3570]] as const).map(([flow, delay]) =>
-      window.setTimeout(() => dispatch({ type: 'sequence', requestId: accepted, flow }), reduced ? 0 : delay))
-    return () => timers.forEach(window.clearTimeout)
-  }, [accepted, dispatch, reduced])
+    if (!state.requestId) return
+    const next = state.flow === 'spinning'
+      ? { flow: 'printing' as const, delay: 4_000 }
+      : state.flow === 'printing'
+        ? { flow: 'opening' as const, delay: 850 }
+        : null
+    if (!next) return
+    const timer = window.setTimeout(() => dispatch({ type: 'sequence', requestId: state.requestId, flow: next.flow }), reduced ? 0 : next.delay)
+    return () => window.clearTimeout(timer)
+  }, [state.flow, state.requestId, dispatch, reduced])
 }

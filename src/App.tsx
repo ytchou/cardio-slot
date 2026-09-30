@@ -6,18 +6,19 @@ import { MachineControls } from './components/MachineControls'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { ReelMachine } from './components/ReelMachine'
 import { RunScreen } from './components/RunScreen'
+import { formatDuration } from './components/Ticket'
 import { TicketDialog } from './components/TicketDialog'
 import { TicketHandoff } from './components/TicketHandoff'
 import { TicketPrinter } from './components/TicketPrinter'
-import { getResultHeadlineKey } from './domain/resultHeadline'
 import { getRunSnapshot } from './domain/runtime'
+import { getRecordedIntervals } from './domain/timeline'
 import { generateDifferentWorkout, generateWorkout } from './domain/workout'
 import { useInstallPrompt } from './platform/install'
 import { createWorkoutSeed } from './platform/random'
 import { createResultImage, downloadResultImage } from './platform/share'
 import { loadPersistedState, savePersistedState } from './platform/storage'
 import { useWakeLock } from './platform/wakeLock'
-import { useI18n } from './i18n'
+import { effortLabel, templateLabel, useI18n } from './i18n'
 import './styles.css'
 
 export default function App() {
@@ -68,11 +69,11 @@ export default function App() {
     setResultImageFailed(false)
     if (!state.latestResult) return
     let cancelled = false
-    void createResultImage(state.latestResult.plan, state.latestResult.summary, state.preferences.theme, locale)
+    void createResultImage(state.latestResult.plan, state.latestResult.summary, locale)
       .then(file => { if (!cancelled) setResultFile(file) })
       .catch(() => { if (!cancelled) setResultImageFailed(true) })
     return () => { cancelled = true }
-  }, [locale, state.latestResult, state.preferences.theme])
+  }, [locale, state.latestResult])
   useEffect(() => {
     if (!resultFile) { setResultPreviewUrl(''); return }
     const url = URL.createObjectURL(resultFile)
@@ -110,9 +111,9 @@ export default function App() {
   }
   const close = () => { dispatch({ type: 'close-ticket' }); window.requestAnimationFrame(() => (ticketReturnFocus.current?.isConnected ? ticketReturnFocus.current : document.querySelector<HTMLButtonElement>('.lever'))?.focus()) }
   const downloadResult = () => { if (resultFile) downloadResultImage(resultFile) }
-  const resultHeadline = state.latestResult ? t(getResultHeadlineKey(state.latestResult.plan, state.latestResult.summary)) : ''
   const machineVisible = !active && state.flow !== 'result'
   const showFullHeader = !active && state.flow !== 'ticket'
+  const result = state.latestResult?.summary
   return <div className={`app-shell ${active ? 'session-shell' : ''} ${showFullHeader ? 'has-app-header' : ''}`}>
     {showFullHeader && <header className="app-header"><span className="app-wordmark">CARDIO SLOT</span><div className="app-utilities">
       {installPrompt.canInstall && <button className="install-button" aria-label={t('app.install')} onClick={() => void installPrompt.install()}><span className="install-label-full">{t('app.install')}</span><span className="install-label-short" aria-hidden="true">{t('app.installShort')}</span></button>}
@@ -130,11 +131,32 @@ export default function App() {
       onSettled={() => dispatch({ type: 'sequence', flow: 'ticket', requestId: state.requestId })} />}
     {state.flow === 'ticket' && state.currentTicket && <TicketDialog key={state.requestId} plan={state.currentTicket}
       onClose={close} onPull={pull} onStart={() => dispatch({ type: 'start-countdown', timestamp: Date.now() })} />}
-    {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><LanguageSwitcher className="active-language-switcher" /><p>{t('countdown.ready')}</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>{t('countdown.instructions')}</p></main>}
+    {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>{t('countdown.ready')}</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>{t('countdown.instructions')}</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
-    {state.flow === 'result' && state.latestResult && <main className="result-screen"><div className="result-copy"><h1>{resultHeadline}</h1></div>
-      <section className="result-output" aria-label={t('result.region')}>
-        {resultPreviewUrl && <img className="result-preview" src={resultPreviewUrl} width="1080" height="1350" alt={t('result.preview')} />}
+    {state.flow === 'result' && result && <main className="result-screen"><section className="result-output" aria-label={t('result.region')}>
+        {!resultImageFailed && <div className="result-preview-frame" aria-busy={!resultPreviewUrl}>
+          {resultPreviewUrl ? <img className="result-preview" src={resultPreviewUrl} width="1080" height="1080" alt={t('result.preview')} aria-describedby="result-summary" /> : <p role="status">{t('result.preparing')}</p>}
+        </div>}
+        <div id="result-summary" className={resultImageFailed ? 'result-summary' : 'sr-only'}>
+          <p>{t(result.status === 'completed' ? 'image.completed' : 'image.ended')}</p>
+          <time dateTime={result.dateIso}>{new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(result.dateIso))}</time>
+          <dl>
+            <div><dt>{t('image.workoutType')}</dt><dd>{templateLabel(locale, result.templateType)}</dd></div>
+            <div><dt>{t('image.time')}</dt><dd>{formatDuration(result.elapsedSeconds)}</dd></div>
+            <div><dt>{t(result.status === 'completed' ? 'image.blocks' : 'image.plannedBlocks')}</dt><dd>{result.blockCount}</dd></div>
+            <div><dt>{t('image.topIncline')}</dt><dd>{result.elapsedSeconds > 0 ? `${result.maximumIncline}%` : '—'}</dd></div>
+          </dl>
+          <dl aria-label={t('image.timeByEffort')}>
+            {(['easy', 'strong', 'max', 'recovery'] as const).map(effort => <div key={effort}><dt>{effortLabel(locale, effort)}</dt><dd>{formatDuration(result.intensitySeconds[effort])}</dd></div>)}
+          </dl>
+          {state.latestResult && <ol aria-label={t(result.templateType === 'hills' ? 'image.inclineProfile' : 'image.effortProfile')}>
+            {getRecordedIntervals(state.latestResult.plan, result.elapsedSeconds).map(interval => <li key={interval.id}>{t('image.profileInterval', {
+              start: formatDuration(interval.startSeconds), end: formatDuration(interval.startSeconds + interval.durationSeconds),
+              effort: effortLabel(locale, interval.intensity), incline: interval.incline,
+            })}</li>)}
+          </ol>}
+          {result.elapsedSeconds === 0 && <p>{t('image.noIntervals')}</p>}
+        </div>
         <div className="result-actions"><div className="result-share-actions">
           {!resultFile && !resultImageFailed && <button className="primary-button" disabled>{t('result.preparing')}</button>}
           {resultFile && <button className="primary-button" onClick={downloadResult}>{t('result.download')}</button>}

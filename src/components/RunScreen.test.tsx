@@ -60,5 +60,5 @@ describe('Given a generated workout is running', () => {
 })
 
 function intervalLabel(intensity: 'easy' | 'strong' | 'max' | 'recovery') {
-  return intensity === 'recovery' ? 'Walk / Easy' : intensity[0].toUpperCase() + intensity.slice(1)
+  return intensity === 'recovery' ? 'Walk' : intensity[0].toUpperCase() + intensity.slice(1)
 }

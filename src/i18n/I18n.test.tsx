@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MachineControls } from '../components/MachineControls'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { translate } from './catalog'
 import { I18nProvider, useI18n } from './I18n'
 
@@ -8,6 +9,27 @@ function Probe() {
   const { locale, setLocale, t } = useI18n()
   return <><span>{locale}</span><span>{t('ticket.start')}</span><button onClick={() => setLocale('zh-TW')}>switch</button></>
 }
+
+it('lets users open the language picker, select a language, and dismiss it without changing their choice', () => {
+  localStorage.clear()
+  render(<I18nProvider initialLocale="en"><LanguageSwitcher /></I18nProvider>)
+  const trigger = screen.getByRole('button', { name: 'Language' })
+  expect(screen.queryByRole('button', { name: 'Traditional Chinese' })).not.toBeInTheDocument()
+  fireEvent.click(trigger)
+  fireEvent.click(screen.getByRole('button', { name: 'Traditional Chinese' }))
+  expect(document.documentElement.lang).toBe('zh-TW')
+  expect(localStorage.getItem('cardio-slot-locale')).toBe('zh-TW')
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(trigger).toHaveFocus()
+  fireEvent.click(trigger)
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(screen.queryByRole('button', { name: '英文' })).not.toBeInTheDocument()
+  expect(trigger).toHaveFocus()
+  fireEvent.click(trigger)
+  fireEvent.pointerDown(document.body)
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(localStorage.getItem('cardio-slot-locale')).toBe('zh-TW')
+})
 
 describe('Given a manual locale change, every consumer receives the new catalog', () => {
   it('updates rendered copy and persists the explicit override', async () => {

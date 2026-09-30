@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/*.png'],
+      includeAssets: ['icons/*.png', 'licenses/*.txt'],
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,webmanifest,png,svg,woff2}'],

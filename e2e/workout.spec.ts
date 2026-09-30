@@ -26,7 +26,7 @@ async function expectResultScreen(page: Page) {
   await expect(page.locator('.result-copy')).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Workout result' })).toBeVisible()
   await expect(page.getByText('The whole ticket, start to finish.')).toHaveCount(0)
-  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('heading')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('heading', { level: 1 })).toHaveText((await saved(page)).latestResult.summary.status === 'completed' ? 'Workout complete' : 'Session summary')
 }
 
 test.beforeEach(async ({ page }) => {
@@ -77,7 +77,7 @@ test('Given a 30-minute ticket, every main block prints interval rows without ch
   const effortTerms = effortGuide.getByRole('term')
   await expect(effortGuide.getByRole('heading', { name: 'Effort guide' })).toBeVisible()
   await expect(effortTerms).toHaveCount(4)
-  for (const explanation of ['You can speak in full sentences.', 'You can speak in short phrases.', 'You can only manage a few words.', 'Walk or jog very easily until ready.']) {
+  for (const explanation of ['Full sentences', 'Short phrases', 'Only a few words', 'Easy walk or jog']) {
     await expect(effortGuide.getByText(explanation, { exact: true })).toBeVisible()
   }
   expect((await saved(page)).currentTicket.id).toBe(current.currentTicket.id)
@@ -119,7 +119,7 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await expect(ticket.getByRole('heading', { name: /Block \d+ of/ })).toHaveCount(mainBlocks.length)
   await expect(ticket.getByRole('list', { name: 'Intervals' })).toHaveCount(first.currentTicket.blocks.length)
   await expect(ticket.getByRole('button', { name: /Block \d+ of/ })).toHaveCount(0)
-  await expect(ticket.getByText('Go at your own pace. Stop if you’re in pain, dizzy, or unwell.', { exact: true })).toBeVisible()
+  await expect(ticket.getByText(/Go at your own pace/)).toHaveCount(0)
   await expect(ticket.getByText(/Seed [A-F0-9]{8}/)).toHaveCount(0)
   await expect(ticket.getByText(/main blocks · Incline/)).toHaveCount(0)
   await page.getByRole('button', { name: 'Close ticket' }).click()
@@ -150,7 +150,7 @@ test('Given settings and a ticket, edits invalidate the preview and every instru
   await expectResultImage(page)
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
-  expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
+  expect((await download).suggestedFilename()).toMatch(/^cardio-slot-(endurance|hills|speed)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-ended\.png$/)
   await expect(page.getByRole('status')).toHaveCount(0)
 })
 
@@ -179,9 +179,15 @@ test('Given a completed session, Pull again clears the old ticket and runs the f
   await expectResultScreen(page)
   await expectResultImage(page)
   const imageText = await page.evaluate(() => (window as unknown as { resultImageText: string[] }).resultImageText)
-  expect(imageText).toEqual(expect.arrayContaining(['SESSION COMPLETED', 'CARDIO SLOT', '# BLOCKS', 'TOP INCLINE']))
+  expect(imageText).toEqual(expect.arrayContaining(['SESSION COMPLETED', 'CARDIO SLOT', 'TIME', 'TOP INCLINE']))
+  expect(imageText).not.toContain('# BLOCKS')
+  expect(imageText).not.toContain('PLANNED BLOCKS')
   expect(imageText).not.toEqual(expect.arrayContaining(['COMPLETED', 'MAIN BLOCKS PLANNED', '30:00 / 30:00']))
   const completed = (await saved(page)).latestResult.plan
+  const completedSummary = (await saved(page)).latestResult.summary
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download PNG' }).click()
+  expect((await download).suggestedFilename()).toBe(`cardio-slot-${completedSummary.templateType}-${completedSummary.dateIso.replace(/[:.]/g, '-')}-completed.png`)
   const previewUrl = await page.getByRole('img', { name: 'Shareable workout result preview' }).getAttribute('src')
 
   await page.getByRole('button', { name: 'Pull again' }).click()
@@ -252,8 +258,10 @@ test('Given a result image is ready, the result actions stay download-only', asy
   const resultButtons = page.getByRole('region', { name: 'Workout result' }).getByRole('button')
   await expect(resultButtons).toHaveText(['Download PNG', 'Pull again'])
   const imageText = await page.evaluate(() => (window as unknown as { resultImageText: string[] }).resultImageText)
-  expect(imageText).toEqual(expect.arrayContaining(['CARDIO SLOT', 'PLANNED BLOCKS', 'TOP INCLINE', 'TIME']))
-  expect(imageText.some(text => ['PRESCRIBED INCLINE', 'PRESCRIBED EFFORT'].includes(text))).toBe(true)
+  expect(imageText).toEqual(expect.arrayContaining(['CARDIO SLOT', 'TOP INCLINE', 'TIME']))
+  expect(imageText).not.toContain('PRESCRIBED EFFORT')
+  expect(imageText).not.toContain('PLANNED BLOCKS')
+  expect(imageText).not.toContain('# BLOCKS')
   expect(imageText).not.toEqual(expect.arrayContaining(['ORIGINAL PICK', 'Personal pace. Real effort. Your run.', 'cardio-slot · visual treadmill workouts']))
   await expect(page.getByRole('button', { name: 'Pull again' })).toBeEnabled()
 
@@ -278,9 +286,10 @@ test('Given the result image is ready, download stays usable', async ({ page }) 
 
   await expect(page.getByRole('button', { name: 'Download PNG' })).toBeEnabled({ timeout: RESULT_IMAGE_TIMEOUT_MS })
   await expect(page.getByRole('region', { name: 'Workout result' }).getByRole('button')).toHaveText(['Download PNG', 'Pull again'])
+  const result = (await saved(page)).latestResult.summary
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download PNG' }).click()
-  expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
+  expect((await download).suggestedFilename()).toBe(`cardio-slot-${result.templateType}-${result.dateIso.replace(/[:.]/g, '-')}-${result.status}.png`)
 })
 
 test('Given rotation at every stage, the request and scheduled session remain unchanged', async ({ page }) => {

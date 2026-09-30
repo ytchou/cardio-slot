@@ -12,7 +12,13 @@ it('prints every workout interval without opening sections', () => {
   expect(screen.getAllByRole('list', { name: 'Intervals' })).toHaveLength(plan.blocks.length)
   expect(screen.getAllByRole('listitem')).toHaveLength(intervalCount)
   expect(screen.queryByRole('button', { name: /Block \d+ of/ })).not.toBeInTheDocument()
-  expect(screen.getByText('You can speak in full sentences.')).toBeVisible()
+  expect(screen.getByText('Full sentences')).toBeVisible()
+  expect(screen.queryByText(/Go at your own pace/)).not.toBeInTheDocument()
+  const mainBlocks = plan.blocks.filter(block => block.kind === 'main')
+  for (const [index] of mainBlocks.entries()) {
+    const block = screen.getByRole('region', { name: `Block ${index + 1} of ${mainBlocks.length}` })
+    expect(within(block).getByText(String(index + 1).padStart(2, '0'), { exact: true })).toBeVisible()
+  }
 })
 
 it('shows the scheduled incline in the recovery row', () => {

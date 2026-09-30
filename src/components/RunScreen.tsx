@@ -23,10 +23,11 @@ function WorkoutMap({ plan, snapshot }: { plan: WorkoutPlan; snapshot: RunSnapsh
         const duration = block.intervals.reduce((total, interval) => total + interval.durationSeconds, 0)
         return <span key={block.id} className={`workout-map-phase phase-${block.kind}`} style={{ flexGrow: duration }}>
           {block.intervals.map(interval => <i key={interval.id} data-interval-id={interval.id}
-            className={`workout-map-interval interval-${interval.intensity}${interval.id === snapshot.currentInterval?.id ? ' is-current' : ''}${interval.startSeconds + interval.durationSeconds <= snapshot.elapsedSeconds ? ' is-complete' : ''}`}
+            className={`workout-map-interval interval-${interval.intensity}${interval.id === snapshot.currentInterval?.id ? ' is-current' : ''}`}
             style={{ flexGrow: interval.durationSeconds }} />)}
         </span>
       })}
+      <span className="workout-map-elapsed" style={{ width: `${progress}%` }} />
       <span className="workout-map-playhead" style={{ left: `${progress}%` }} />
     </div>
   </div>
@@ -99,7 +100,7 @@ export function RunScreen({ state, snapshot, wake, reduced, dispatch }: { state:
       </div>
       <p className="run-incline"><span>{t('ticket.incline')}</span><strong>{current.incline}%</strong></p>
     </section>
-    <aside className="run-next"><div className={`next-panel${soon ? ' is-soon' : ''}`} aria-live="polite"><p>{soon ? t('run.nextIn', { seconds: Math.ceil(snapshot.intervalRemainingSeconds) }) : t('run.next')}</p>
+    <aside className="run-next"><div className={`next-panel${next ? ` effort-${next.intensity}` : ''}${soon ? ' is-soon' : ''}`} aria-live="polite"><p>{soon ? t('run.nextIn', { seconds: Math.ceil(snapshot.intervalRemainingSeconds) }) : t('run.next')}</p>
       <div className="next-details"><strong>{next ? effortLabel(locale, next.intensity) : t('run.finish')}</strong><span>{next ? `${formatDuration(next.durationSeconds)} · ${next.incline}%` : t('run.sessionComplete')}</span></div>
     </div><button className="end-button" aria-label={t('run.end')} onClick={() => dispatch({ type: 'request-end' })}><span aria-hidden="true">■</span> {t('run.end')}</button>
       {(wake === 'denied' || wake === 'unsupported') && <div className="run-options"><span className="wake-status">{t('run.wakeUnavailable')}</span></div>}

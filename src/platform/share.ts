@@ -31,7 +31,7 @@ function drawProfile(context: CanvasRenderingContext2D, plan: WorkoutPlan, resul
   context.fillStyle = COLORS.ink
   context.textAlign = 'left'
   context.font = font(30, 500, locale)
-  context.fillText(translate(locale, hills ? 'image.inclineProfile' : 'image.effortProfile'), MARGIN, 342)
+  if (hills) context.fillText(translate(locale, 'image.inclineProfile'), MARGIN, 342)
   context.font = font(24, 400, locale)
   context.fillStyle = COLORS.secondary
   context.textAlign = 'right'
@@ -130,7 +130,6 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   const metrics = [
     [translate(locale, 'image.time'), formatClock(result.elapsedSeconds)],
     [translate(locale, 'image.topIncline'), result.elapsedSeconds > 0 ? `${result.maximumIncline}%` : '—'],
-    [translate(locale, result.status === 'completed' ? 'image.blocks' : 'image.plannedBlocks'), String(result.blockCount)],
   ] as const
   const columnWidth = (CARD_SIZE - MARGIN * 2) / metrics.length
   for (const [index, [label, value]] of metrics.entries()) {
@@ -175,7 +174,7 @@ export async function createResultImage(plan: WorkoutPlan, result: ResultSummary
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(value => value ? resolve(value) : reject(new Error('Could not render result image')), 'image/png')
   })
-  return new File([blob], `cardio-slot-${result.status}.png`, { type: 'image/png' })
+  return new File([blob], `cardio-slot-${result.templateType}-${result.dateIso.replace(/[:.]/g, '-')}-${result.status}.png`, { type: 'image/png' })
 }
 
 export function downloadResultImage(file: File) {

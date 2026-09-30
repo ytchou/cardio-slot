@@ -31,19 +31,22 @@ function IntervalCards({ intervals }: { intervals: WorkoutInterval[] }) {
   </ol>
 }
 
-function TicketPhase({ block, index, mainCount }: { block: WorkoutBlock; index: number; mainCount: number }) {
+function TicketPhase({ block, mainCount }: { block: WorkoutBlock; mainCount: number }) {
   const { locale, t } = useI18n()
   const duration = block.intervals.reduce((total, current) => total + current.durationSeconds, 0)
+  const isMain = block.kind === 'main'
   return <section className="ticket-phase" aria-label={localizedPhaseLabel(locale, block, mainCount)} data-phase-kind={block.kind}>
     <div className="ticket-phase-title">
-      <span className="ticket-phase-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+      <span className="ticket-phase-index" aria-hidden="true">{isMain ? String(block.mainBlockIndex ?? 1).padStart(2, '0') : null}</span>
       <h3>{localizedPhaseLabel(locale, block, mainCount)}</h3>
-      <time>{formatDuration(duration)}</time>
+      {isMain && <time>{formatDuration(duration)}</time>}
     </div>
     <div className="ticket-phase-content">
-      <div className="ticket-column-headings" aria-hidden="true"><span /><span>{t('ticket.time')}</span><span>{t('ticket.effort')}</span><span>{t('ticket.incline')}</span></div>
+      {isMain && <>
+        <div className="ticket-phase-timeline" aria-hidden="true">{block.intervals.map(interval => <span key={interval.id} className={`ticket-timeline-${interval.intensity}`} style={{ flexGrow: interval.durationSeconds }} />)}</div>
+        <div className="ticket-column-headings" aria-hidden="true"><span /><span>{t('ticket.time')}</span><span>{t('ticket.effort')}</span><span>{t('ticket.incline')}</span></div>
+      </>}
       <IntervalCards intervals={block.intervals} />
-      <div className="ticket-phase-timeline" aria-hidden="true">{block.intervals.map(interval => <span key={interval.id} className={`ticket-timeline-${interval.intensity}`} style={{ flexGrow: interval.durationSeconds }} />)}</div>
     </div>
   </section>
 }
@@ -54,7 +57,7 @@ function EffortGuide() {
     <h3>{t('ticket.effortGuide')}</h3>
     <dl className="ticket-effort-guide-controls">
       {EFFORTS.map(effort => <div key={effort}>
-        <dt>{effortLabel(locale, effort)}</dt>
+        <dt><span className={`ticket-timeline-${effort}`} aria-hidden="true" />{effortLabel(locale, effort)}</dt>
         <dd>{effortHelp(locale, effort)}</dd>
       </div>)}
     </dl>
@@ -67,9 +70,8 @@ export function Ticket({ plan, children }: { plan: WorkoutPlan; children?: React
   return <article className="ticket" aria-label={t('ticket.plan')}>
       <TicketHeading plan={plan} />
       <div className="ticket-body" aria-label={t('ticket.instructions')}>
-        {plan.blocks.map((block, index) => <TicketPhase block={block} index={index} mainCount={mainCount} key={block.id} />)}
+        {plan.blocks.map(block => <TicketPhase block={block} mainCount={mainCount} key={block.id} />)}
         <EffortGuide />
-        <aside className="ticket-safety"><p>{t('ticket.safety')}</p></aside>
       </div>
     {children}
   </article>

@@ -32,7 +32,7 @@ test('Given an unrelated page font stalls, the runner can still save the complet
     await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false }))
     const download = page.waitForEvent('download')
     await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
-    expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
+    expect((await download).suggestedFilename()).toMatch(/^cardio-slot-(endurance|hills|speed)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-ended\.png$/)
   } finally { releaseFont(); await page.unrouteAll({ behavior: 'wait' }) }
 })
 
@@ -55,7 +55,7 @@ test('Given result fonts fail or stall, the runner can still download the comple
   await expect(page.getByRole('button', { name: /^(Save|Download) PNG$/ })).toBeEnabled()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: /^(Save|Download) PNG$/ }).click()
-  expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
+  expect((await download).suggestedFilename()).toMatch(/^cardio-slot-(endurance|hills|speed)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-ended\.png$/)
 })
 
 test('Given PNG rendering fails, the runner can still read the result and start another workout', async ({ page }) => {
@@ -100,5 +100,5 @@ test('Given Chinese is selected, the bundled font loads and the runner can expor
   await expect(page.getByRole('img', { name: '可分享的訓練結果預覽' })).toBeVisible()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: '下載 PNG' }).click()
-  expect((await download).suggestedFilename()).toBe('cardio-slot-ended.png')
+  expect((await download).suggestedFilename()).toMatch(/^cardio-slot-(endurance|hills|speed)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-ended\.png$/)
 })

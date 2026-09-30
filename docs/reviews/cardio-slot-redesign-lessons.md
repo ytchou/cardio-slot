@@ -39,3 +39,29 @@ Symptom: the companion test claimed that animation kept playing but asserted onl
 ## A removed heading needs a complete copy sweep
 
 Symptom: both browser engines failed because a longer settings journey still looked for Before you start after the user approved its removal. Cause: the earlier test drift sweep covered ticket structure but missed that separate copy assertion. Prevention: search every removed literal and translation key throughout e2e before submitting. How to apply: assert the retained actionable safety footnote instead of restoring a heading the user removed.
+
+## A slower gallop does not become a walk
+
+- Symptom: WALK displayed the same airborne stride as running, only more slowly.
+- Cause: animation speed changed, but gait geometry and resting limb angles did not.
+- Prevention: verify the motion at multiple frames for each named effort, especially ground contact and torso height.
+- How to apply: keep the illustrated character and rig, author a level-body four-footfall cycle with upright limb rest angles, and blend into the running cycle at interval boundaries.
+
+## Compact guide rows need a shared label track
+
+Symptom: effort descriptions wrapped and their starting edges drifted across rows. Cause: each row sized independent label and description columns. Prevention: size label columns once across the guide and shorten explanatory copy before reducing font size. How to apply: use one content-sized guide grid with brief bilingual talk-test cues, and inspect the settled dialog at narrow widths rather than the animated printer copy.
+
+## Number from the displayed domain concept
+
+Symptom: Block 1 printed 02 after supporting phases became unnumbered margin notes. Cause: the ticket still numbered overall chronological phases. Prevention: derive displayed numbers from the same canonical domain field as their headings. How to apply: use mainBlockIndex for both main-block number and label; regression-check a ticket with warm-up, recovery and cool-down present.
+
+## Margin layouts need an explicit ending
+
+Symptom: aligning the footer to the itinerary left an unused gutter after the timeline ended. Cause: alignment alone was treated as the design solution, without defining the relationship between workout phases and closing reference content. Prevention: review the whole sheet and explicitly end the margin system before a separate footer. How to apply: keep the itinerary margin for phases, use a full-width ruled guide and compact safety note for the footer, and retain single-line explanations at the narrowest width.
+
+## Visual probes must preserve test fixtures
+
+- Symptom: a temporary completed-result reload captured confetti, then the existing URL-revocation check failed.
+- Cause: the reload removed a window-level test hook installed only in the original page.
+- Prevention: isolate reload-based visual probes or reinstall their browser-bound test fixtures before continuing the journey.
+- How to apply: keep temporary screenshot instrumentation out of the committed regression flow, restore the original test and verify it after removing the probe.

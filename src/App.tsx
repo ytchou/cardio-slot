@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { appReducer, createInitialState, machineBusy, sessionActive, toPersistedState } from './app/state'
 import { useMachineSequence, useReducedMotion } from './app/useMachineSequence'
@@ -134,6 +134,10 @@ export default function App() {
     {state.flow === 'countdown' && state.activeRun && <main className="countdown-screen"><p>{t('countdown.ready')}</p><strong aria-live="assertive">{Math.max(1, Math.ceil((state.activeRun.startTimestamp - state.now) / 1000))}</strong><p>{t('countdown.instructions')}</p></main>}
     {state.flow === 'running' && runSnapshot && <RunScreen state={state} snapshot={runSnapshot} wake={wakeLockStatus} reduced={reduced} dispatch={dispatch} />}
     {state.flow === 'result' && result && <main className="result-screen"><section className="result-output" aria-label={t('result.region')}>
+        {result.status === 'completed' && <div className="result-confetti" key={result.dateIso} aria-hidden="true">
+          {Array.from({ length: 24 }, (_, index) => <i key={index} style={{ left: `${(index * 41) % 100}%`, animationDelay: `${(index % 6) * 90}ms`, '--confetti-drift': `${(index % 2 ? -1 : 1) * (24 + index % 5 * 16)}px`, '--confetti-turn': `${index % 2 ? -720 : 720}deg` } as CSSProperties} />)}
+        </div>}
+        <header className="result-heading"><h1>{t(result.status === 'completed' ? 'result.completedTitle' : 'result.endedTitle')}</h1><p>{t('result.savePrompt')}</p></header>
         {!resultImageFailed && <div className="result-preview-frame" aria-busy={!resultPreviewUrl}>
           {resultPreviewUrl ? <img className="result-preview" src={resultPreviewUrl} width="1080" height="1080" alt={t('result.preview')} aria-describedby="result-summary" /> : <p role="status">{t('result.preparing')}</p>}
         </div>}
@@ -143,7 +147,6 @@ export default function App() {
           <dl>
             <div><dt>{t('image.workoutType')}</dt><dd>{templateLabel(locale, result.templateType)}</dd></div>
             <div><dt>{t('image.time')}</dt><dd>{formatDuration(result.elapsedSeconds)}</dd></div>
-            <div><dt>{t(result.status === 'completed' ? 'image.blocks' : 'image.plannedBlocks')}</dt><dd>{result.blockCount}</dd></div>
             <div><dt>{t('image.topIncline')}</dt><dd>{result.elapsedSeconds > 0 ? `${result.maximumIncline}%` : '—'}</dd></div>
           </dl>
           <dl aria-label={t('image.timeByEffort')}>

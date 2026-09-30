@@ -52,6 +52,7 @@ test('Given Traditional Chinese is selected, an offline reload keeps the localiz
   try {
     const online = await context.newPage()
     await online.goto(origin.url)
+    await online.getByRole('button', { name: 'Language', exact: true }).click()
     await online.getByRole('button', { name: 'Traditional Chinese' }).click()
     await expect(online.locator('html')).toHaveAttribute('lang', 'zh-TW')
     await online.evaluate(async () => { await navigator.serviceWorker.ready })

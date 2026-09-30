@@ -15,32 +15,35 @@ test('Given a supported Chinese browser locale, the first visit uses Traditional
   await expect(page.getByRole('button', { name: '拉出訓練' })).toBeVisible()
 })
 
-test('Given a manual language choice, every stage updates without changing the workout', async ({ page }) => {
+test('Given a manual language choice, the session keeps that language without showing language controls', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-17T06:00:00Z') })
   await page.goto('./')
+  await page.getByRole('button', { name: 'Language', exact: true }).click()
   await page.getByRole('button', { name: 'Traditional Chinese' }).click()
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-TW')
 
   await page.getByRole('button', { name: '拉出訓練' }).click()
   const planId = (await saved(page)).currentTicket.id
   await page.clock.runFor(900)
+  await page.getByRole('button', { name: '語言', exact: true }).click()
   await page.getByRole('button', { name: '英文' }).click()
+  await page.getByRole('button', { name: 'Language', exact: true }).click()
   await page.getByRole('button', { name: 'Traditional Chinese' }).click()
   expect((await saved(page)).currentTicket.id).toBe(planId)
   await page.clock.runFor(2_750)
 
   const ticket = page.getByRole('dialog', { name: '你的訓練單' })
   await expect(ticket).toBeVisible()
+  await expect(ticket.getByRole('group', { name: '語言', exact: true })).toHaveCount(0)
   await expect(ticket.getByRole('heading', { name: '今日訓練' })).toBeVisible()
   await expect(ticket.getByRole('button', { name: '開始訓練' })).toBeEnabled()
   await ticket.getByRole('button', { name: '開始訓練' }).click()
+  await expect(page.getByRole('group', { name: '語言', exact: true })).toHaveCount(0)
   const scheduled = (await saved(page)).activeRun.startTimestamp
   await page.clock.runFor(5_200)
 
-  await expect(page.getByRole('button', { name: '英文' })).toBeVisible()
-  await page.getByRole('button', { name: '英文' }).click()
-  await expect(page.getByRole('button', { name: 'End session' })).toBeVisible()
-  await page.getByRole('button', { name: 'Traditional Chinese' }).click()
+  await expect(page.getByRole('group', { name: '語言', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '結束訓練' })).toBeVisible()
   expect((await saved(page)).activeRun.startTimestamp).toBe(scheduled)
 
   await page.evaluate(() => {
@@ -53,9 +56,10 @@ test('Given a manual language choice, every stage updates without changing the w
     }
   })
   await page.getByRole('button', { name: '結束訓練' }).click()
+  await expect(page.getByRole('group', { name: '語言', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: '是，結束訓練' }).click()
   await expect(page.getByRole('region', { name: '訓練結果' })).toBeVisible()
-  await expect.poll(() => page.evaluate(() => (window as unknown as { localizedImageText: string[] }).localizedImageText)).toContain('訓練摘要')
+  await expect.poll(() => page.evaluate(() => (window as unknown as { localizedImageText: string[] }).localizedImageText)).toContain('訓練已結束')
 
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-TW')

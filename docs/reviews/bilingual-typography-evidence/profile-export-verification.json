@@ -1,0 +1,2064 @@
+[
+  {
+    "template": "hills",
+    "locale": "en",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "hills-en",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "hills",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 510,
+        "strong": 270,
+        "max": 60,
+        "recovery": 60
+      },
+      "maximumIncline": 6
+    },
+    "recordedIntervals": 17,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "Sep 30, 2026",
+        "left": 812.8000030517578,
+        "right": 1000,
+        "top": 67,
+        "bottom": 91
+      },
+      {
+        "text": "HILLS TRAINING",
+        "left": 80,
+        "right": 617.5999755859375,
+        "top": 155,
+        "bottom": 202
+      },
+      {
+        "text": "SESSION COMPLETED",
+        "left": 80,
+        "right": 386,
+        "top": 237,
+        "bottom": 258
+      },
+      {
+        "text": "PRESCRIBED INCLINE",
+        "left": 80,
+        "right": 404,
+        "top": 321,
+        "bottom": 342
+      },
+      {
+        "text": "1%",
+        "left": 109.20000076293945,
+        "right": 138,
+        "top": 590,
+        "bottom": 607
+      },
+      {
+        "text": "6%",
+        "left": 109.20000076293945,
+        "right": 138,
+        "top": 386,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "TIME",
+        "left": 199.73333485921225,
+        "right": 266.93333180745446,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "TOP INCLINE",
+        "left": 447.5999984741211,
+        "right": 632.4000015258789,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "6%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "# BLOCKS",
+        "left": 779.4666697184246,
+        "right": 913.8666636149089,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "Easy",
+        "left": 80,
+        "right": 152,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "8:30",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Strong",
+        "left": 564,
+        "right": 672,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "4:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Max",
+        "left": 80,
+        "right": 134,
+        "top": 987,
+        "bottom": 1008
+      },
+      {
+        "text": "1:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "Walk",
+        "left": 564,
+        "right": 636,
+        "top": 986,
+        "bottom": 1008
+      },
+      {
+        "text": "1:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "hills",
+    "locale": "zh-TW",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "hills-zh-TW",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "hills",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 510,
+        "strong": 270,
+        "max": 60,
+        "recovery": 60
+      },
+      "maximumIncline": 6
+    },
+    "recordedIntervals": 17,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "坡度訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練完成",
+        "left": 80,
+        "right": 200,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "坡度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "1%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 589,
+        "bottom": 607
+      },
+      {
+        "text": "6%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 385,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "6%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "組數",
+        "left": 818.6666666666667,
+        "right": 874.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "8:30",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "4:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "1:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "1:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "endurance",
+    "locale": "en",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "endurance-en",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "endurance",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 375,
+        "strong": 420,
+        "max": 45,
+        "recovery": 60
+      },
+      "maximumIncline": 2
+    },
+    "recordedIntervals": 10,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "Sep 30, 2026",
+        "left": 812.8000030517578,
+        "right": 1000,
+        "top": 67,
+        "bottom": 91
+      },
+      {
+        "text": "ENDURANCE TRAINING",
+        "left": 80,
+        "right": 771.2000122070312,
+        "top": 155,
+        "bottom": 202
+      },
+      {
+        "text": "SESSION COMPLETED",
+        "left": 80,
+        "right": 386,
+        "top": 237,
+        "bottom": 258
+      },
+      {
+        "text": "PRESCRIBED EFFORT",
+        "left": 80,
+        "right": 386,
+        "top": 321,
+        "bottom": 342
+      },
+      {
+        "text": "Walk",
+        "left": 80.4000015258789,
+        "right": 138,
+        "top": 589,
+        "bottom": 607
+      },
+      {
+        "text": "Easy",
+        "left": 80.4000015258789,
+        "right": 138,
+        "top": 522,
+        "bottom": 544
+      },
+      {
+        "text": "Strong",
+        "left": 51.599998474121094,
+        "right": 138,
+        "top": 454,
+        "bottom": 476
+      },
+      {
+        "text": "Max",
+        "left": 94.79999923706055,
+        "right": 138,
+        "top": 386,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "TIME",
+        "left": 199.73333485921225,
+        "right": 266.93333180745446,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "TOP INCLINE",
+        "left": 447.5999984741211,
+        "right": 632.4000015258789,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "2%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "# BLOCKS",
+        "left": 779.4666697184246,
+        "right": 913.8666636149089,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "Easy",
+        "left": 80,
+        "right": 152,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "6:15",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Strong",
+        "left": 564,
+        "right": 672,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "7:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Max",
+        "left": 80,
+        "right": 134,
+        "top": 987,
+        "bottom": 1008
+      },
+      {
+        "text": "0:45",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "Walk",
+        "left": 564,
+        "right": 636,
+        "top": 986,
+        "bottom": 1008
+      },
+      {
+        "text": "1:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "endurance",
+    "locale": "zh-TW",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "endurance-zh-TW",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "endurance",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 375,
+        "strong": 420,
+        "max": 45,
+        "recovery": 60
+      },
+      "maximumIncline": 2
+    },
+    "recordedIntervals": 10,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "耐力訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練完成",
+        "left": 80,
+        "right": 200,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "強度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "步行",
+        "left": 90,
+        "right": 138,
+        "top": 586,
+        "bottom": 610
+      },
+      {
+        "text": "輕鬆",
+        "left": 90,
+        "right": 138,
+        "top": 518,
+        "bottom": 542
+      },
+      {
+        "text": "衝刺",
+        "left": 90,
+        "right": 138,
+        "top": 450,
+        "bottom": 474
+      },
+      {
+        "text": "全力",
+        "left": 90,
+        "right": 138,
+        "top": 382,
+        "bottom": 406
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "組數",
+        "left": 818.6666666666667,
+        "right": 874.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "6:15",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "7:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "0:45",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "1:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "speed",
+    "locale": "en",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "speed-en",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "speed",
+      "blockCount": 3,
+      "intensitySeconds": {
+        "easy": 420,
+        "strong": 150,
+        "max": 120,
+        "recovery": 210
+      },
+      "maximumIncline": 2
+    },
+    "recordedIntervals": 19,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "Sep 30, 2026",
+        "left": 812.8000030517578,
+        "right": 1000,
+        "top": 67,
+        "bottom": 91
+      },
+      {
+        "text": "SPEED TRAINING",
+        "left": 80,
+        "right": 617.5999755859375,
+        "top": 155,
+        "bottom": 202
+      },
+      {
+        "text": "SESSION COMPLETED",
+        "left": 80,
+        "right": 386,
+        "top": 237,
+        "bottom": 258
+      },
+      {
+        "text": "PRESCRIBED EFFORT",
+        "left": 80,
+        "right": 386,
+        "top": 321,
+        "bottom": 342
+      },
+      {
+        "text": "Walk",
+        "left": 80.4000015258789,
+        "right": 138,
+        "top": 589,
+        "bottom": 607
+      },
+      {
+        "text": "Easy",
+        "left": 80.4000015258789,
+        "right": 138,
+        "top": 522,
+        "bottom": 544
+      },
+      {
+        "text": "Strong",
+        "left": 51.599998474121094,
+        "right": 138,
+        "top": 454,
+        "bottom": 476
+      },
+      {
+        "text": "Max",
+        "left": 94.79999923706055,
+        "right": 138,
+        "top": 386,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "TIME",
+        "left": 199.73333485921225,
+        "right": 266.93333180745446,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "TOP INCLINE",
+        "left": 447.5999984741211,
+        "right": 632.4000015258789,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "2%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "# BLOCKS",
+        "left": 779.4666697184246,
+        "right": 913.8666636149089,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "3",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "Easy",
+        "left": 80,
+        "right": 152,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "7:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Strong",
+        "left": 564,
+        "right": 672,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "2:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Max",
+        "left": 80,
+        "right": 134,
+        "top": 987,
+        "bottom": 1008
+      },
+      {
+        "text": "2:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "Walk",
+        "left": 564,
+        "right": 636,
+        "top": 986,
+        "bottom": 1008
+      },
+      {
+        "text": "3:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "speed",
+    "locale": "zh-TW",
+    "minutes": 15,
+    "elapsed": 900,
+    "slug": "speed-zh-TW",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 900,
+      "plannedSeconds": 900,
+      "templateType": "speed",
+      "blockCount": 3,
+      "intensitySeconds": {
+        "easy": 420,
+        "strong": 150,
+        "max": 120,
+        "recovery": 210
+      },
+      "maximumIncline": 2
+    },
+    "recordedIntervals": 19,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "速度訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練完成",
+        "left": 80,
+        "right": 200,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "強度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "步行",
+        "left": 90,
+        "right": 138,
+        "top": 586,
+        "bottom": 610
+      },
+      {
+        "text": "輕鬆",
+        "left": 90,
+        "right": 138,
+        "top": 518,
+        "bottom": 542
+      },
+      {
+        "text": "衝刺",
+        "left": 90,
+        "right": 138,
+        "top": 450,
+        "bottom": 474
+      },
+      {
+        "text": "全力",
+        "left": 90,
+        "right": 138,
+        "top": 382,
+        "bottom": 406
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "15:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "組數",
+        "left": 818.6666666666667,
+        "right": 874.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "3",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "7:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "2:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "2:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "3:30",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "endurance",
+    "locale": "zh-TW",
+    "minutes": 60,
+    "elapsed": 3600,
+    "slug": "60m-zh-TW",
+    "result": {
+      "status": "completed",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 3600,
+      "plannedSeconds": 3600,
+      "templateType": "endurance",
+      "blockCount": 5,
+      "intensitySeconds": {
+        "easy": 1545,
+        "strong": 1755,
+        "max": 60,
+        "recovery": 240
+      },
+      "maximumIncline": 2
+    },
+    "recordedIntervals": 38,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "耐力訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練完成",
+        "left": 80,
+        "right": 200,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "強度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "步行",
+        "left": 90,
+        "right": 138,
+        "top": 586,
+        "bottom": 610
+      },
+      {
+        "text": "輕鬆",
+        "left": 90,
+        "right": 138,
+        "top": 518,
+        "bottom": 542
+      },
+      {
+        "text": "衝刺",
+        "left": 90,
+        "right": 138,
+        "top": 450,
+        "bottom": 474
+      },
+      {
+        "text": "全力",
+        "left": 90,
+        "right": 138,
+        "top": 382,
+        "bottom": 406
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "20:00",
+        "left": 401.3333333333333,
+        "right": 473.3333333333333,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "40:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "60:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "60:00",
+        "left": 119.33333333333334,
+        "right": 347.33333333333337,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "組數",
+        "left": 818.6666666666667,
+        "right": 874.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "5",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 764,
+        "bottom": 818
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "25:45",
+        "left": 402,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "29:15",
+        "left": 886,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "1:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "4:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "hills",
+    "locale": "zh-TW",
+    "minutes": 15,
+    "elapsed": 83,
+    "slug": "ended-zh-TW",
+    "result": {
+      "status": "ended",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 83,
+      "plannedSeconds": 900,
+      "templateType": "hills",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 30,
+        "strong": 53,
+        "max": 0,
+        "recovery": 0
+      },
+      "maximumIncline": 5
+    },
+    "recordedIntervals": 2,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "坡度訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練已結束",
+        "left": 80,
+        "right": 230,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "坡度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "1%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 589,
+        "bottom": 607
+      },
+      {
+        "text": "6%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 385,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "1:23",
+        "left": 142.13333638509116,
+        "right": 324.53333028157556,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "5%",
+        "left": 494.4000015258789,
+        "right": 585.5999984741211,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "計畫組數",
+        "left": 790.6666666666667,
+        "right": 902.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "0:30",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "0:53",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "0:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "0:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "template": "hills",
+    "locale": "zh-TW",
+    "minutes": 15,
+    "elapsed": 0,
+    "slug": "zero-zh-TW",
+    "result": {
+      "status": "ended",
+      "dateIso": "2026-09-30T00:00:00.000Z",
+      "elapsedSeconds": 0,
+      "plannedSeconds": 900,
+      "templateType": "hills",
+      "blockCount": 2,
+      "intensitySeconds": {
+        "easy": 0,
+        "strong": 0,
+        "max": 0,
+        "recovery": 0
+      },
+      "maximumIncline": 1
+    },
+    "recordedIntervals": 0,
+    "text": [
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "2026年9月30日",
+        "left": 820.9900054931641,
+        "right": 1000,
+        "top": 63,
+        "bottom": 89
+      },
+      {
+        "text": "坡度訓練",
+        "left": 80,
+        "right": 336,
+        "top": 146,
+        "bottom": 208
+      },
+      {
+        "text": "訓練已結束",
+        "left": 80,
+        "right": 230,
+        "top": 232,
+        "bottom": 261
+      },
+      {
+        "text": "坡度安排",
+        "left": 80,
+        "right": 200,
+        "top": 316,
+        "bottom": 346
+      },
+      {
+        "text": "1%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 589,
+        "bottom": 607
+      },
+      {
+        "text": "6%",
+        "left": 102.58000183105469,
+        "right": 138,
+        "top": 385,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "尚無紀錄",
+        "left": 518,
+        "right": 638,
+        "top": 470,
+        "bottom": 499
+      },
+      {
+        "text": "時間",
+        "left": 205.33333333333334,
+        "right": 261.33333333333337,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "0:00",
+        "left": 142.13333638509116,
+        "right": 324.53333028157556,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "最高坡度",
+        "left": 484,
+        "right": 596,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "—",
+        "left": 517.2000007629395,
+        "right": 562.7999992370605,
+        "top": 789,
+        "bottom": 798
+      },
+      {
+        "text": "計畫組數",
+        "left": 790.6666666666667,
+        "right": 902.6666666666667,
+        "top": 696,
+        "bottom": 723
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "輕鬆",
+        "left": 80,
+        "right": 140,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "0:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "衝刺",
+        "left": 564,
+        "right": 624,
+        "top": 904,
+        "bottom": 934
+      },
+      {
+        "text": "0:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "全力",
+        "left": 80,
+        "right": 140,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "0:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "步行",
+        "left": 564,
+        "right": 624,
+        "top": 982,
+        "bottom": 1012
+      },
+      {
+        "text": "0:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "CARDIO SLOT",
+        "left": 80,
+        "right": 251.60000610351562,
+        "top": 67,
+        "bottom": 86
+      },
+      {
+        "text": "Sep 30, 2026",
+        "left": 812.8000030517578,
+        "right": 1000,
+        "top": 67,
+        "bottom": 91
+      },
+      {
+        "text": "HILLS TRAINING",
+        "left": 80,
+        "right": 617.5999755859375,
+        "top": 155,
+        "bottom": 202
+      },
+      {
+        "text": "SESSION ENDED",
+        "left": 80,
+        "right": 314,
+        "top": 237,
+        "bottom": 258
+      },
+      {
+        "text": "PRESCRIBED INCLINE",
+        "left": 80,
+        "right": 404,
+        "top": 321,
+        "bottom": 342
+      },
+      {
+        "text": "1%",
+        "left": 109.20000076293945,
+        "right": 138,
+        "top": 590,
+        "bottom": 607
+      },
+      {
+        "text": "6%",
+        "left": 109.20000076293945,
+        "right": 138,
+        "top": 386,
+        "bottom": 403
+      },
+      {
+        "text": "0:00",
+        "left": 156,
+        "right": 213.5999984741211,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "5:00",
+        "left": 408.53333409627277,
+        "right": 466.13333257039386,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "10:00",
+        "left": 682.6666666666666,
+        "right": 754.6666666666666,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "15:00",
+        "left": 928,
+        "right": 1000,
+        "top": 623,
+        "bottom": 640
+      },
+      {
+        "text": "No recorded intervals",
+        "left": 389,
+        "right": 767,
+        "top": 474,
+        "bottom": 496
+      },
+      {
+        "text": "TIME",
+        "left": 199.73333485921225,
+        "right": 266.93333180745446,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "0:00",
+        "left": 142.13333638509116,
+        "right": 324.53333028157556,
+        "top": 763,
+        "bottom": 818
+      },
+      {
+        "text": "TOP INCLINE",
+        "left": 447.5999984741211,
+        "right": 632.4000015258789,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "—",
+        "left": 517.2000007629395,
+        "right": 562.7999992370605,
+        "top": 789,
+        "bottom": 798
+      },
+      {
+        "text": "PLANNED BLOCKS",
+        "left": 729.0666681925456,
+        "right": 964.2666651407878,
+        "top": 700,
+        "bottom": 720
+      },
+      {
+        "text": "2",
+        "left": 823.8666674296062,
+        "right": 869.4666659037273,
+        "top": 763,
+        "bottom": 817
+      },
+      {
+        "text": "Easy",
+        "left": 80,
+        "right": 152,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "0:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Strong",
+        "left": 564,
+        "right": 672,
+        "top": 909,
+        "bottom": 936
+      },
+      {
+        "text": "0:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 904,
+        "bottom": 930
+      },
+      {
+        "text": "Max",
+        "left": 80,
+        "right": 134,
+        "top": 987,
+        "bottom": 1008
+      },
+      {
+        "text": "0:00",
+        "left": 424.8000030517578,
+        "right": 516,
+        "top": 982,
+        "bottom": 1008
+      },
+      {
+        "text": "Walk",
+        "left": 564,
+        "right": 636,
+        "top": 986,
+        "bottom": 1008
+      },
+      {
+        "text": "0:00",
+        "left": 908.8000030517578,
+        "right": 1000,
+        "top": 982,
+        "bottom": 1008
+      }
+    ]
+  },
+  {
+    "fontStallFallbackMs": 2086
+  }
+]

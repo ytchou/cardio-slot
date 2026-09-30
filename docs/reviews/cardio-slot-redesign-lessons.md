@@ -1,5 +1,7 @@
 # Verification lessons
 
+- Symptom: the ticket's safety reminder felt too heavy beside its effort guide. Cause: a separate red heading repeated context already established by the ticket. Prevention: size a reminder's hierarchy to its purpose rather than using a generic warning section. Apply: retain the actionable stop guidance as a regular-text printed footnote with a neutral divider.
+
 - Symptom: preview rendered blank at the deployment subpath. Cause: Vite's preview command used the default base while the build used `/cardio-slot/`. Prevention: pass the same base to build and preview. Apply in Playwright's managed server command.
 - Symptom: keyboard focus left the native dialog in Safari. Cause: relying on browser Tab defaults, which vary with full keyboard access. Prevention: cycle the dialog's enabled focus targets explicitly. Apply to receipt keyboard acceptance in both engines.
 - Symptom: WebKit offline emulation blocked navigation before the service worker. Cause: network instrumentation bypassed the normal browser failure path. Prevention: shut down a test-owned HTTP origin and navigate a fresh page. Apply to cross-engine offline tests; do not claim real offline proof from cache inventory alone.
@@ -14,3 +16,26 @@
 - Symptom: the effort guide reported a collapsed state while its chips remained visible. Cause: the component's authored `display: grid` rule overrode the browser's default styling for the `hidden` attribute. Prevention: pair stateful `hidden` content with a component-local `[hidden] { display: none; }` rule. Apply whenever an authored display mode controls a disclosure panel.
 - Symptom: removing the final standalone Recovery card left the final main block ending in `WALK / EASY`. Cause: recovery safety and phase placement were treated as the same UI structure instead of separate timeline invariants. Prevention: assert both that MAX has a low-effort follow-up and that no main block terminates in recovery. Apply these invariants independently in generation and validation before changing phase presentation.
 - Symptom: ticket text still changed apparent size between English and Traditional Chinese after computed font values matched. Cause: translated labels inside monospace containers used IBM Plex for Latin text but silently fell back to a CJK font for Chinese glyphs. Prevention: verify the actual font role of localized descendants, not only their computed size or declared font stack. Apply monospace fonts only to language-neutral values such as times and percentages.
+- Symptom: the full browser suite still expected a removed running-phase title. Cause: the earlier UI cleanup updated result assertions but missed a regex matching the phase heading in a longer journey. Prevention: search both literal copy and regex fragments across every affected E2E flow. Apply by asserting phase information on the accessible progress value when the visible heading is intentionally removed.
+- Symptom: a screenshot helper could see the ticket dialog but could not find its effort-guide button. Cause: an exact accessible-name match omitted the CSS-generated disclosure marker. Prevention: reuse the established scoped guide/button locator instead of assuming visible text equals the full accessible name. Apply to screenshot fixtures as well as permanent journey tests.
+- Symptom: three generated result-card concepts felt artificial despite being visually distinct. Cause: they treated a workout share as an illustrated poster and invented scenery, slogans, or implied outdoor running instead of foregrounding recorded facts. Prevention: start from the actual data contract and inspect real activity-sharing patterns before choosing a visual medium. Apply to future result-card work with deterministic typography and charts; do not imply GPS, heart rate, pace, or calories that Cardio Slot does not record.
+
+## Language-picker changes need a complete caller sweep
+
+Symptom: changing direct language buttons into a picker makes existing e2e locale selection fail. Cause: interaction tests assumed the options were always exposed. Prevention: search all language-option selectors, including offline journeys, before changing the shared control. How to apply: preserve localized accessible names and persistence behavior, open the picker in every affected journey, and verify dismissal/focus behavior with a real provider.
+
+## Font changes require real viewport review
+
+Symptom: wider English typography clipped the running header and next cue, and the End button fell below a short viewport. Cause: an implicit grid track inherited nowrap min-content width, a fixed illustration frame exceeded its cue, and vertical spacing assumed a tall screen. Prevention: inspect the live flow at 320×640 in both languages and short landscape whenever font metrics change. How to apply: use explicit shrinkable grid tracks, bounded type roles and a width-responsive illustration baseline; preserve natural scrolling for paper and results instead of hiding overflow.
+
+## Related control rows need shared dimensions
+
+Symptom: duration buttons did not align with the bookend rocker boundaries after the typography change. Cause: the duration row sized its label from content while the bookend row used two equal columns and fixed-width rockers. Prevention: derive related control-row boundaries from their shared widths and gutters instead of independent content sizing. How to apply: keep the rocker width in one local CSS token and reuse it for the duration track; retain the stacked narrow-screen pattern.
+
+## A mocked drawing cannot verify continuous animation
+
+Symptom: the companion test claimed that animation kept playing but asserted only identity of an SVG created by its SDK mock. Cause: an illustration fixture was mistaken for real motion evidence. Prevention: remove that assertion rather than claim animation coverage; retain SDK boundary isolation for component behavior tests. How to apply: use real-engine journeys and timed visual review for continuity, speed and gait, and keep explicit limitations in the PR.
+
+## A removed heading needs a complete copy sweep
+
+Symptom: both browser engines failed because a longer settings journey still looked for Before you start after the user approved its removal. Cause: the earlier test drift sweep covered ticket structure but missed that separate copy assertion. Prevention: search every removed literal and translation key throughout e2e before submitting. How to apply: assert the retained actionable safety footnote instead of restoring a heading the user removed.

@@ -1,6 +1,7 @@
 import { getIntervalTransition, getRunSnapshot } from './runtime'
 import { summarizeResult } from './summary'
 import { generateWorkout } from './workout'
+import { getRecordedIntervals } from './timeline'
 
 describe('Given a workout is running from an absolute start time', () => {
   const plan = generateWorkout({ durationMinutes: 15, includeWarmup: true, includeCooldown: true }, 86_753)
@@ -33,6 +34,19 @@ describe('Given a workout is running from an absolute start time', () => {
 })
 
 describe('Given exact phase and incline boundaries', () => {
+  it('shows only elapsed interval portions when a workout ends early or before it starts', () => {
+    const plan = generateWorkout({ durationMinutes: 15, includeWarmup: false, includeCooldown: false }, 86_753, 'hills')
+    const recorded = getRecordedIntervals(plan, 83)
+    expect(recorded.map(({ startSeconds, durationSeconds, incline }) => ({ startSeconds, durationSeconds, incline }))).toEqual([
+      { startSeconds: 0, durationSeconds: 30, incline: 1 },
+      { startSeconds: 30, durationSeconds: 53, incline: 5 },
+    ])
+    expect(getRecordedIntervals(plan, 0)).toEqual([])
+    expect(getRecordedIntervals(plan, -10)).toEqual([])
+    expect(getRecordedIntervals(plan, 1_000).reduce((seconds, interval) => seconds + interval.durationSeconds, 0)).toBe(900)
+    expect(plan.blocks.flatMap(block => block.intervals).at(1)?.durationSeconds).toBe(60)
+  })
+
   it('keeps the old interval until the boundary then advances directly to the next phase', () => {
     const plan = generateWorkout({ durationMinutes: 15, includeWarmup: true, includeCooldown: false }, 10)
     const intervals = plan.blocks.flatMap(block => block.intervals)
